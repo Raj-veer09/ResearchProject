@@ -1,0 +1,11 @@
+pid,Expected_Label,Scenario
+4120,BENIGN,Windows Explorer
+8124,BENIGN,Edge HTTPS
+5152,BENIGN,VS Code GitHub
+2220,BENIGN,MySQL Listen
+1020,BENIGN,svchost
+9900,MALICIOUS,PowerShell reverse shell
+6000,MALICIOUS,Masquerading svchost
+7300,MALICIOUS,Tor orphan socket
+8400,MALICIOUS,Masquerading ETDCtrl
+9100,MALICIOUS,LOLBin rundll32

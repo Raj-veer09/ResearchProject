@@ -1,0 +1,11 @@
+pid,process_name,process_owner,process_hash_sha256,cert_status,thread_count,parent_pid,command_line,has_connection,network_protocol,network_connection_state,network_out_process_ip,network_out_process_fqdn,network_out_process_port,network_out_process_service,network_in_process_ip,network_in_process_fqdn,network_in_process_port,network_in_process_service,is_orphan_connection
+4120,explorer.exe,USER,6d8e...valid,signed,42,980,C:\Windows\explorer.exe,False,,,,,,,,,,,False
+8124,msedge.exe,USER,bd18086e44694f66ff074c4f2d8bf9f05ad221671622326ef06fcb8a58ffd5b1,signed,30,4000,"""C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"" --type=utility --utility-sub-type=network.mojom.NetworkService",True,TCP,ESTABLISHED,23.45.11.8,a23.deploy.static.akamaitechnologies.com,443,https,192.168.1.25,unknown,53012,unknown,False
+5152,Code.exe,USER,a1b2...valid,signed,34,4000,"""C:\Users\USER\AppData\Local\Programs\Microsoft VS Code\Code.exe""",True,TCP,ESTABLISHED,140.82.114.5,lb-140-82-114-5-iad.github.com,443,https,192.168.1.25,unknown,53210,unknown,False
+2220,mysqld.exe,SYSTEM,9f9f...valid,signed,18,640,C:\Program Files\MySQL\MySQL Server\bin\mysqld.exe,True,TCP,LISTEN,,,3306,mysql,0.0.0.0,unknown,3306,mysql,False
+1020,svchost.exe,SYSTEM,3ab2...valid,signed,15,640,C:\Windows\System32\svchost.exe -k NetworkService,False,,,,,,,,,,,False
+9900,powershell.exe,USER,unknown,unsigned,1,0,powershell.exe -enc SQBFAFgA,True,TCP,ESTABLISHED,185.220.101.45,tor-exit-node.example,4444,unknown,192.168.1.25,unknown,51234,unknown,False
+6000,svchost.exe,SYSTEM,unknown,signed,3,640,C:\Users\Public\svchost.exe,True,TCP,ESTABLISHED,91.243.44.12,unknown,8080,http,192.168.1.25,unknown,52345,unknown,False
+7300,unknown,unknown,unknown,unknown,0,0,unknown,True,TCP,ESTABLISHED,185.220.101.45,unknown,9001,tor,192.168.1.25,unknown,49888,unknown,True
+8400,ETDCtrl.exe,USER,unknown,signed,12,900,C:\Windows\System32\ETDCtrl.exe,False,,,,,,,,,,,False
+9100,rundll32.exe,USER,unknown,signed,5,1500,rundll32.exe javascript:...,True,TCP,ESTABLISHED,45.9.148.77,unknown,443,https,192.168.1.25,unknown,54123,unknown,False
