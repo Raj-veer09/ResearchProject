@@ -38,6 +38,19 @@ API_KEY = os.getenv("ANTHROPIC_API_KEY")
 client = Anthropic(api_key=API_KEY) if API_KEY else None
 
 
+import logging
+
+logging.basicConfig(
+    filename="iepis_audit.log",
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s"
+)
+
+logger = logging.getLogger("IEPIS")
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("anthropic").setLevel(logging.WARNING)
+
+
 # ─────────────────────────────────────────────────────────
 # STEP 1 + 2: Load raw events AND join process <-> connection by PID
 # ─────────────────────────────────────────────────────────
@@ -289,15 +302,16 @@ Rules
 • Mention only searches actually performed.
 • If unavailable write "Not Available."
 • If no threat intelligence exists write "No malicious match found."
-• If a malicious match exists, explicitly state:
-
-* what was found
-* where it was found
-* why it matters
-  • Include the most important intelligence finding.
-  • Avoid long explanations of the source itself.
-  • Be concise but complete.
-  • Target approximately 80–120 words.
+• If a match exists, state:
+  - what was found
+  - where it was found
+• Avoid lengthy background explanations.
+• Prefer concise intelligence summaries.
+• Focus on findings rather than descriptions.
+• One to three short sentences per section.
+• Include the most important intelligence finding.
+• Target approximately 60–90 words for most records.
+• Up to 120 words only when a confirmed malicious match exists.
 
 Example:
 
@@ -446,75 +460,260 @@ def build_prompt(row):
     return "\n".join(lines)
 
 
-def query_llm(prompt, max_retries=5):
+
+def query_llm(prompt, row, max_retries=5):
+        """
+        Send one joined record to Claude with web_search enabled.
+        Claude is required (via system prompt) to search before classifying.
+        Implements exponential backoff for rate limit errors (429).
+        """
+
+        if not client:
+            return {
+                "classification": "ERROR",
+                "confidence": "LOW",
+                "threat_intel_finding": "",
+                "reason": "ANTHROPIC_API_KEY not set."
+            }
+
+        for attempt in range(max_retries):
+
+            start_time = time.time()
+
+            try:
+                response = client.messages.create(
+                    model="claude-sonnet-4-6",
+                    max_tokens=2500,
+                    temperature=0,
+                    system=SYSTEM_PROMPT,
+                    tools=[{"type": "web_search_20250305", "name": "web_search"}],
+                    messages=[{"role": "user", "content": prompt}]
+                )
+
+                # Get the final text block
+                final_text = None
+
+                for block in response.content:
+                    if block.type == "text":
+                        final_text = block.text
+
+                if not final_text:
+
+                    logger.error(
+                        f"""
+    ============================================================
+    PID: {row.get('pid')}
+    Process: {row.get('process_name')}
+
+    Status: ERROR
+
+    Error:
+    No text response from model.
+    ============================================================
     """
-    Send one joined record to Claude with web_search enabled.
-    Claude is required (via system prompt) to search before classifying.
-    Implements exponential backoff for rate limit errors (429).
-    """
-    if not client:
-        return {"classification": "ERROR", "confidence": "LOW",
-                "threat_intel_finding": "", "reason": "ANTHROPIC_API_KEY not set."}
+                    )
 
-    for attempt in range(max_retries):
-        try:
-            response = client.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=2500,
-                temperature=0,
-                system=SYSTEM_PROMPT,
-                tools=[{"type": "web_search_20250305", "name": "web_search"}],
-                messages=[{"role": "user", "content": prompt}]
-            )
-
-            # Get the last text block (Claude writes final JSON after tool use)
-            final_text = None
-            for block in response.content:
-                if block.type == "text":
-                    final_text = block.text
-
-            if not final_text:
-                return {"classification": "ERROR", "confidence": "LOW",
-                        "threat_intel_finding": "", "reason": "No text response from model."}
-
-            text = final_text.strip()
-            # Strip markdown fences if present
-            text = re.sub(r"```json\s*", "", text)
-            text = re.sub(r"```\s*", "", text)
-            text = text.strip()
-
-            # Extract JSON object
-            m = re.search(r"\{.*\}", text, re.DOTALL)
-            if not m:
-                print(f"    [WARN] No JSON found in response. Raw tail: {text[-200:]!r}")
-                raise json.JSONDecodeError("No JSON object found", text, 0)
-
-            return json.loads(m.group())
-
-        except Exception as e:
-            err_str = str(e)
-
-            # Rate limit — exponential backoff
-            if "429" in err_str or "rate_limit" in err_str:
-                wait = (2 ** attempt) * 15  # 15s, 30s, 60s, 120s, 240s
-                print(f"    [RATE LIMIT] attempt {attempt+1}/{max_retries} — waiting {wait}s...")
-                time.sleep(wait)
-                continue
-
-            # JSON parse failure — return gracefully, don't retry
-            if isinstance(e, json.JSONDecodeError):
-                print(f"    [WARN] JSON parse failed: {e}")
-                return {"classification": "UNKNOWN", "confidence": "LOW",
+                    return {
+                        "classification": "ERROR",
+                        "confidence": "LOW",
                         "threat_intel_finding": "",
-                        "reason": "LLM response was not valid JSON"}
+                        "reason": "No text response from model."
+                    }
 
-            # Any other error
-            return {"classification": "ERROR", "confidence": "LOW",
-                    "threat_intel_finding": "", "reason": err_str}
+                text = final_text.strip()
 
-    return {"classification": "ERROR", "confidence": "LOW",
+                # Strip markdown fences if present
+                text = re.sub(r"```json\s*", "", text)
+                text = re.sub(r"```\s*", "", text)
+                text = text.strip()
+
+                # Extract JSON object
+                m = re.search(r"\{.*\}", text, re.DOTALL)
+
+                if not m:
+                    print(f"    [WARN] No JSON found in response. Raw tail: {text[-200:]!r}")
+                    raise json.JSONDecodeError("No JSON object found", text, 0)
+
+                result = json.loads(m.group())
+
+                processing_time = round(time.time() - start_time, 2)
+
+                identifier = (
+                    row.get("process_name")
+                    or row.get("network_out_process_fqdn")
+                    or row.get("network_out_process_ip")
+                    or "UNKNOWN"
+                )
+
+                logger.info(
+                    f"""
+    ============================================================
+    Identifier: {identifier}
+
+    Telemetry Summary
+    -----------------
+    PID: {row.get('pid')}
+    Process: {row.get('process_name')}
+    Owner: {row.get('process_owner')}
+    Hash: {row.get('process_hash_sha256')}
+    Certificate: {row.get('cert_status')}
+
+    Has Connection: {row.get('has_connection')}
+    Orphan Connection: {row.get('is_orphan_connection')}
+
+    Destination IP:
+    {row.get('network_out_process_ip')}
+
+    Destination FQDN:
+    {row.get('network_out_process_fqdn')}
+
+    Destination Port:
+    {row.get('network_out_process_port')}
+
+    Protocol:
+    {row.get('network_protocol')}
+
+    Connection State:
+    {row.get('network_connection_state')}
+
+    AI Classification
+    -----------------
+    Classification: {result.get('classification')}
+    Confidence: {result.get('confidence')}
+
+    Threat Intel
+    ------------
+    {result.get('threat_intel_finding', '')}
+
+    Reason
+    ------
+    {result.get('reason', '')}
+
+    Processing Time: {processing_time}s
+
+    Status: SUCCESS
+    ============================================================
+    """
+                )
+
+                return result
+
+            except Exception as e:
+
+                err_str = str(e)
+
+                identifier = (
+                    row.get("process_name")
+                    or row.get("network_out_process_fqdn")
+                    or row.get("network_out_process_ip")
+                    or "UNKNOWN"
+                )
+
+                # Rate limit handling
+                if "429" in err_str or "rate_limit" in err_str:
+
+                    logger.warning(
+                        f"""
+    ============================================================
+    Identifier: {identifier}
+
+    PID: {row.get('pid')}
+    Process: {row.get('process_name')}
+
+    Status: RATE_LIMIT
+
+    Attempt:
+    {attempt + 1}/{max_retries}
+
+    Error:
+    {err_str}
+    ============================================================
+    """
+                    )
+
+                    wait = (2 ** attempt) * 15
+
+                    print(
+                        f"    [RATE LIMIT] attempt {attempt+1}/{max_retries} — waiting {wait}s..."
+                    )
+
+                    time.sleep(wait)
+                    continue
+
+                # JSON parse failure
+                if isinstance(e, json.JSONDecodeError):
+
+                    print(f"    [WARN] JSON parse failed: {e}")
+
+                    logger.warning(
+                        f"""
+    ============================================================
+    Identifier: {identifier}
+
+    PID: {row.get('pid')}
+    Process: {row.get('process_name')}
+
+    Status: JSON_PARSE_FAILURE
+
+    Error:
+    {e}
+    ============================================================
+    """
+                    )
+
+                    return {
+                        "classification": "UNKNOWN",
+                        "confidence": "LOW",
+                        "threat_intel_finding": "",
+                        "reason": "LLM response was not valid JSON"
+                    }
+
+                # Generic error
+                logger.error(
+                    f"""
+    ============================================================
+    Identifier: {identifier}
+
+    PID: {row.get('pid')}
+    Process: {row.get('process_name')}
+
+    Status: ERROR
+
+    Error:
+    {err_str}
+    ============================================================
+    """
+                )
+
+                return {
+                    "classification": "ERROR",
+                    "confidence": "LOW",
+                    "threat_intel_finding": "",
+                    "reason": err_str
+                }
+
+        logger.error(
+            f"""
+    ============================================================
+    PID: {row.get('pid')}
+    Process: {row.get('process_name')}
+
+    Status: ERROR
+
+    Error:
+    Exceeded {max_retries} retries due to rate limiting.
+    ============================================================
+    """
+        )
+
+        return {
+            "classification": "ERROR",
+            "confidence": "LOW",
             "threat_intel_finding": "",
-            "reason": f"Exceeded {max_retries} retries due to rate limiting."}
+            "reason": f"Exceeded {max_retries} retries due to rate limiting."
+        }
+
+
 
 
 # ─────────────────────────────────────────────────────────
@@ -528,7 +727,7 @@ def classify_dataframe(df):
     for idx, row in df.iterrows():
         print(f"  [{idx+1}/{total}] PID {row['pid']} | {row['process_name']} -> searching + classifying...")
         prompt = build_prompt(row)
-        result = query_llm(prompt)
+        result = query_llm(prompt,row)
 
         classifications.append(result.get("classification", "UNKNOWN"))
         confidences.append(result.get("confidence", "LOW"))
@@ -645,7 +844,7 @@ def run_prompt_tests():
 
     for i, tc in enumerate(TEST_CASES, 1):
         prompt = build_prompt(tc["row"])
-        result = query_llm(prompt)
+        result = query_llm(prompt, tc["row"])
         got = result.get("classification", "UNKNOWN")
         expected = tc["expected"]
         ok = got == expected
