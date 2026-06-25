@@ -236,13 +236,11 @@ def scan_connections() -> dict[tuple, dict]:
 
                 "Network_Out_Process_IP": remote_ip,
                 "Network_Out_Process_FQDN": out_fqdn,
-                "Network_Out_Process_DNS": out_fqdn,
                 "Network_Out_Process_Port": remote_port,
                 "Network_Out_Process_Service": out_service,
 
                 "Network_In_Process_IP": local_ip,
                 "Network_In_Process_FQDN": in_fqdn,
-                "Network_In_Process_DNS": in_fqdn,
                 "Network_In_Process_Port": local_port,
                 "Network_In_Process_Service": in_service,
             }
