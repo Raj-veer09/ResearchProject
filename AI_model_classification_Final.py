@@ -142,6 +142,7 @@ def _build_row(pid, proc, conn, is_orphan_connection):
         "network_in_process_port"       : conn.get("Network_In_Process_Port"),
         "network_in_process_service"    : clean_str(conn.get("Network_In_Process_Service")),
         "is_orphan_connection"          : is_orphan_connection,
+        "process_executable_path"       : clean_str(proc.get("Internal_Process_Executable_Path")),
     }
 
 
@@ -560,6 +561,9 @@ def query_llm(prompt, row, max_retries=5):
 
     Has Connection: {row.get('has_connection')}
     Orphan Connection: {row.get('is_orphan_connection')}
+    
+    Executable Path : 
+    {row.get('process_executable_path')}
 
     Destination IP:
     {row.get('network_out_process_ip')}
