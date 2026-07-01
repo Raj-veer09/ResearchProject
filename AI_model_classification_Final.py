@@ -766,6 +766,38 @@ def quarantine_file(file_path):
     except Exception as e:
         logger.error(f"[QUARANTINE] Failed to rename {file_path}: {e}")
         return False
+
+# ─────────────────────────────────────────────────────────
+# STEP 5B: Store malicious hashes
+# ─────────────────────────────────────────────────────────
+
+HASH_STORE_FILE = "malicious_hashes.txt"
+
+def store_malicious_hash(file_hash):
+    """
+    Store malicious SHA-256 hashes for later use with
+    Windows Defender or threat intelligence.
+    """
+
+    if not file_hash or str(file_hash).lower() == "unknown":
+        return
+
+    try:
+        # Avoid duplicate entries
+        existing = set()
+
+        if os.path.exists(HASH_STORE_FILE):
+            with open(HASH_STORE_FILE, "r") as f:
+                existing = {line.strip() for line in f}
+
+        if file_hash not in existing:
+            with open(HASH_STORE_FILE, "a") as f:
+                f.write(file_hash + "\n")
+
+            logger.info(f"[HASH STORE] Stored malicious hash: {file_hash}")
+
+    except Exception as e:
+        logger.error(f"[HASH STORE] Failed to store hash: {e}")
             
 def classify_dataframe(df):
     classifications, confidences, ti_findings, reasons = [], [], [], []
@@ -785,6 +817,9 @@ def classify_dataframe(df):
         if result.get("classification") == "MALICIOUS":
             quarantine_file(
                 row.get("process_executable_path")
+            )
+            store_malicious_hash(
+                row.get("process_hash_sha256")
             )
         # 6s between requests keeps safely under 30k token/min rate limit
         time.sleep(6)
