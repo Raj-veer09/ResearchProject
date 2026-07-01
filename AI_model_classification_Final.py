@@ -723,7 +723,50 @@ def query_llm(prompt, row, max_retries=5):
 # ─────────────────────────────────────────────────────────
 # STEP 5: Classify all rows
 # ─────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────
+# STEP 5A: Quarantine malicious executable
+# ─────────────────────────────────────────────────────────
 
+QUARANTINE_EXTENSION = ".quarantine"
+
+def quarantine_file(file_path):
+    """
+    Renames a malicious executable by appending the
+    '.quarantine' extension.
+    Example: malware.exe -> malware.exe.quarantine   
+    """
+
+    if not file_path or str(file_path).lower() == "unknown":
+        logger.warning("[QUARANTINE] Executable path unavailable.")
+        return False
+
+    if not os.path.exists(file_path):
+        logger.warning(f"[QUARANTINE] File not found: {file_path}")
+        return False
+
+    try:
+        new_path = file_path + QUARANTINE_EXTENSION
+
+        # Prevent overwriting an already quarantined file
+        if os.path.exists(new_path):
+            new_path += ".1"
+
+        os.rename(file_path, new_path)
+
+        logger.info(
+            f"[QUARANTINE] Renamed malicious file:\n"
+            f"Old: {file_path}\n"
+            f"New: {new_path}"
+        )
+
+        print(f"    [+] File quarantined: {new_path}")
+
+        return True
+
+    except Exception as e:
+        logger.error(f"[QUARANTINE] Failed to rename {file_path}: {e}")
+        return False
+            
 def classify_dataframe(df):
     classifications, confidences, ti_findings, reasons = [], [], [], []
 
@@ -738,6 +781,11 @@ def classify_dataframe(df):
         ti_findings.append(result.get("threat_intel_finding", ""))
         reasons.append(result.get("reason", ""))
 
+        # Automatically quarantine malicious executables
+        if result.get("classification") == "MALICIOUS":
+            quarantine_file(
+                row.get("process_executable_path")
+            )
         # 6s between requests keeps safely under 30k token/min rate limit
         time.sleep(6)
 
