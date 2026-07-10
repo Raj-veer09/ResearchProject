@@ -1,0 +1,2933 @@
+2026-07-02 02:26:06,911 | INFO | Starting dynamic monitor | platform=Linux | process_interval=2.0s | network_interval=0.5s
+2026-07-02 02:26:06,938 | INFO | Collecting initial inventory of 430 running processes...
+2026-07-02 02:26:07,734 | INFO | Initial inventory completed (430 processes, 41 active connections)
+2026-07-02 02:26:08,882 | INFO | +1 conn
+2026-07-02 02:26:11,137 | INFO | +0 conn
+2026-07-02 02:26:16,256 | INFO | +0 conn
+2026-07-02 02:26:24,761 | INFO | 
+    ============================================================
+    Identifier: systemd
+
+    Telemetry Summary
+    -----------------
+    PID: 1
+    Process: systemd
+    Owner: root
+    Hash: e6168f67d1e4b4e11eed1ccacb94dcae19cf0a06b8f5ab1cc67dc9f519d3b5d1
+    Certificate: signed
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    /sbin/init
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+No malicious match found. The SHA-256 hash e6168f67d1e4b4e11eed1ccacb94dcae19cf0a06b8f5ab1cc67dc9f519d3b5d1 returned no results associated with known malware or threat actor tooling.
+
+## IP Lookup
+
+Not Available. No network connection is present in this record.
+
+## Domain Lookup
+
+Not Available. No network connection is present in this record.
+
+## Other Intelligence
+
+The command line /sbin/init splash is a well-documented, standard Linux boot invocation. On modern Ubuntu/Debian-based systems, /sbin/init is a symbolic link to /lib/systemd/systemd, and PID 1 with PPID 0 is the expected and canonical process hierarchy for the Linux init system.
+
+## References Consulted
+
+• VirusTotal (hash search)
+• Baeldung on Linux — PID 1 / init process documentation
+• Linux Handbook — systemd /sbin/init symlink documentation
+• Arch Linux Forums — /sbin/init process legitimacy
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name systemd running as PID 1 with PPID 0 — canonical Linux init hierarchy
+• Command line /sbin/init splash — standard Ubuntu/Debian boot invocation via GRUB splash parameter
+• Owner is root — expected for the init process
+• Certificate status: signed — binary is digitally signed
+• No network connection present — no outbound or inbound activity to evaluate
+• SHA-256 hash returned no malicious matches
+
+## Assessment
+
+All telemetry is consistent with a legitimate Linux init process. PID 1 with PPID 0 running as root under the command /sbin/init splash is the standard, expected behavior on systemd-based Linux distributions such as Ubuntu. The binary is signed, the hash is clean, and there is no network activity of any kind. No indicators of compromise or masquerading are present.
+
+    Processing Time: 17.82s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:26:26,542 | INFO | +0 conn
+2026-07-02 02:26:31,087 | INFO | +2 conn
+2026-07-02 02:26:33,370 | INFO | +0 conn
+2026-07-02 02:26:36,791 | INFO | +1 conn
+2026-07-02 02:26:38,491 | INFO | Fallback polling detected missed process PID=23712
+2026-07-02 02:26:38,491 | INFO | Fallback polling detected missed process PID=23713
+2026-07-02 02:26:38,492 | INFO | Fallback polling detected missed process PID=23710
+2026-07-02 02:26:38,492 | INFO | Fallback polling detected missed process PID=23711
+2026-07-02 02:26:39,096 | INFO | +0 conn
+2026-07-02 02:26:41,264 | INFO | +1 conn
+2026-07-02 02:26:41,979 | INFO | +8 conn
+2026-07-02 02:26:42,535 | INFO | +2 conn
+2026-07-02 02:26:43,120 | INFO | +1 conn
+2026-07-02 02:26:43,687 | INFO | +1 conn
+2026-07-02 02:26:44,244 | INFO | +0 conn
+2026-07-02 02:26:45,483 | INFO | +5 conn
+2026-07-02 02:26:46,744 | INFO | 
+    ============================================================
+    Identifier: kthreadd
+
+    Telemetry Summary
+    -----------------
+    PID: 2
+    Process: kthreadd
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided; kthreadd is an in-memory kernel thread with no on-disk executable to hash.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kthreadd (PID 2) is a well-documented, legitimate Linux kernel thread daemon spawned at boot by the kernel's rest_init() function. It is the global parent of all kernel threads and runs entirely in kernel space. No malicious indicators associated with this process.
+
+## References Consulted
+
+• Linux Kernel Source (elixir.bootlin.com)
+• SUSE Communities — What is a kernel thread?
+• Medium — The Linux Process Journey: PID 2 (kthreadd)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kthreadd with PID 2 matches the expected Linux kernel thread daemon
+• Parent PID is 0 (swapper/idle process), consistent with kernel-level boot-time spawning
+• Owner is root, expected for a kernel-space process
+• No network connection present — no outbound or inbound activity
+• No SHA-256 hash — expected, as kthreadd is an in-memory kernel thread with no on-disk binary
+• No command line arguments — consistent with kernel thread behavior
+
+## Assessment
+
+All telemetry is fully consistent with the legitimate Linux kernel thread daemon. kthreadd is always PID 2, always owned by root, always parented by PID 0, and never has a disk-backed executable or network connections. No anomalies, masquerading indicators, or threat intelligence matches exist. This is a normal, expected kernel process.
+
+    Processing Time: 15.95s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:26:49,391 | INFO | +0 conn
+2026-07-02 02:26:52,824 | INFO | +2 conn
+2026-07-02 02:26:53,939 | INFO | Fallback polling detected missed process PID=24225
+2026-07-02 02:26:53,942 | INFO | Fallback polling detected missed process PID=24226
+2026-07-02 02:26:53,942 | INFO | Fallback polling detected missed process PID=24230
+2026-07-02 02:26:54,560 | INFO | +1 conn
+2026-07-02 02:26:55,138 | INFO | +0 conn
+2026-07-02 02:26:56,266 | INFO | +1 conn
+2026-07-02 02:26:59,057 | INFO | Fallback polling detected missed process PID=24297
+2026-07-02 02:26:59,057 | INFO | Fallback polling detected missed process PID=24298
+2026-07-02 02:26:59,057 | INFO | Fallback polling detected missed process PID=24302
+2026-07-02 02:27:00,227 | INFO | +0 conn
+2026-07-02 02:27:04,197 | INFO | Fallback polling detected missed process PID=24353
+2026-07-02 02:27:04,198 | INFO | Fallback polling detected missed process PID=24348
+2026-07-02 02:27:04,198 | INFO | Fallback polling detected missed process PID=24349
+2026-07-02 02:27:05,343 | INFO | +0 conn
+2026-07-02 02:27:05,896 | INFO | +0 conn
+2026-07-02 02:27:09,375 | INFO | 
+    ============================================================
+    Identifier: pool_workqueue_release
+
+    Telemetry Summary
+    -----------------
+    PID: 3
+    Process: pool_workqueue_release
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided; kernel threads do not have a discrete executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+pool_workqueue_release at PID 3 with PPID 2 (kthreadd) is a well-documented Linux kernel thread visible in standard ps output on modern kernels. No malicious match found.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org)
+• both.org ps output reference
+• Linux Foundation Forums (kthreadd)
+• Medium — Linux Process Journey PID 2
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• PID 3, PPID 2 (kthreadd) — canonical kernel thread lineage
+• Process name pool_workqueue_release matches known Linux kernel workqueue subsystem thread
+• Owner is root, consistent with all kernel threads
+• No network connection, no outbound/inbound activity
+• No SHA-256 hash — expected; kernel threads have no on-disk executable
+• No command line — expected for kernel threads
+
+## Assessment
+
+All telemetry is fully consistent with a legitimate Linux kernel thread. pool_workqueue_release at PID 3 parented by kthreadd (PID 2) is a standard workqueue release handler spawned at boot, confirmed by public kernel documentation and real-world ps output. There is no network activity, no suspicious lineage, and no threat intelligence match of any kind.
+
+    Processing Time: 16.62s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:27:09,762 | INFO | Fallback polling detected missed process PID=24416
+2026-07-02 02:27:09,763 | INFO | Fallback polling detected missed process PID=24419
+2026-07-02 02:27:09,763 | INFO | Fallback polling detected missed process PID=24415
+2026-07-02 02:27:10,365 | INFO | +0 conn
+2026-07-02 02:27:10,945 | INFO | +0 conn
+2026-07-02 02:27:15,426 | INFO | +2 conn
+2026-07-02 02:27:19,433 | INFO | +1 conn
+2026-07-02 02:27:19,987 | INFO | +0 conn
+2026-07-02 02:27:25,003 | INFO | +0 conn
+2026-07-02 02:27:27,770 | INFO | +1 conn
+2026-07-02 02:27:29,987 | INFO | +0 conn
+2026-07-02 02:27:32,621 | INFO | 
+    ============================================================
+    Identifier: kworker/R-rcu_gp
+
+    Telemetry Summary
+    -----------------
+    PID: 4
+    Process: kworker/R-rcu_gp
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash was provided for this process.
+
+## IP Lookup
+
+Not Available. No network connection or destination IP is associated with this process.
+
+## Domain Lookup
+
+Not Available. No FQDN is associated with this process.
+
+## Other Intelligence
+
+kworker/R-rcu_gp is a well-documented Linux kernel thread. Real-world process listings confirm PID 4 assigned to [kworker/R-rcu_g] (rcu_gp) as a standard early-boot kernel thread parented to kthreadd (PID 2). Legitimate kernel threads carry no executable path, no command line, and no SHA-256 hash — all consistent with this record.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org/workqueue)
+• Red Hat Knowledge Base — kworker/ksoftirqd threads
+• Sandfly Security — Linux kernel process masquerading forensics
+• Elastic Detection Rules — Executable Masquerading as Kernel Process
+• Raspberry Pi Forums — kworker/R-rcu_g PID 4 process listing
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/R-rcu_gp is a standard Linux RCU grace-period kernel worker thread
+• PID 4 parented to PID 2 (kthreadd) — correct and expected kernel thread lineage
+• No executable path, no command line, no SHA-256 hash — all consistent with a genuine kernel thread
+• No network connection present; no orphan connection flagged
+• Owner is root, which is normal for all kernel threads
+• Real-world Linux process listings confirm [kworker/R-rcu_g] at PID 4 under kthreadd
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. The process name, PID, parent PID, absent command line, absent executable hash, and lack of any network activity all align with expected kernel-space behavior. No masquerading indicators are present — a suspicious kworker would typically carry a non-null executable path or command line arguments. No threat intelligence matches were found.
+
+    Processing Time: 17.24s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:27:38,941 | INFO | +2 conn
+2026-07-02 02:27:41,218 | INFO | +0 conn
+2026-07-02 02:27:44,045 | INFO | +1 conn
+2026-07-02 02:27:46,282 | INFO | +0 conn
+2026-07-02 02:27:51,241 | INFO | +0 conn
+2026-07-02 02:27:52,791 | INFO | +1 conn
+2026-07-02 02:27:56,103 | INFO | +0 conn
+2026-07-02 02:28:02,267 | INFO | +2 conn
+2026-07-02 02:28:02,841 | INFO | +1 conn
+2026-07-02 02:28:03,507 | INFO | +1 conn
+2026-07-02 02:28:04,661 | INFO | +0 conn
+2026-07-02 02:28:06,205 | INFO | 
+    ============================================================
+    Identifier: kworker/R-sync_wq
+
+    Telemetry Summary
+    -----------------
+    PID: 5
+    Process: kworker/R-sync_wq
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash was provided for this process. Legitimate kernel threads do not have an associated executable on disk and therefore produce no hash.
+
+## IP Lookup
+
+Not Available. No network connection is present.
+
+## Domain Lookup
+
+Not Available. No network connection is present.
+
+## Other Intelligence
+
+kworker/R-sync_wq is a legitimate Linux kernel workqueue thread. The naming suffix 'R-sync_wq' is consistent with a rescuer thread for a named workqueue (the 'R-' prefix denotes a rescuer worker in the kernel workqueue framework). Legitimate kworker threads are spawned by kthreadd (PID 2), run as root, carry no executable path, no command line, and no hash — all of which match this record exactly. Threat intelligence sources (Elastic, Splunk, Sandfly Security) flag kworker masquerading only when a non-empty executable path or writable-directory path is present, or when network activity is observed — none of which apply here.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org) — Workqueue
+• Red Hat Knowledge Base — kworker/ksoftirqd threads
+• Elastic Detection Rules — Executable Masquerading as Kernel Process (T1036.004)
+• Splunk Security Content — Linux Kworker Process In Writable Process Path
+• Sandfly Security — Detecting Linux Kernel Process Masquerading
+• detection.fyi — Network Activity Detected via Kworker
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name 'kworker/R-sync_wq' is consistent with a legitimate Linux kernel rescuer workqueue thread
+• Parent PID 2 (kthreadd) is the expected and correct parent for all kernel threads
+• No executable path, no command line, and no SHA-256 hash — all expected for a true kernel thread
+• Owner is root, which is normal for kernel-space threads
+• No network connection present — eliminates C2 or lateral movement concern
+• No orphan connection, no outbound/inbound IP, port, or protocol observed
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel workqueue thread. The PPID of 2 (kthreadd) is the canonical parent for all kernel threads. The absence of an executable path, command line, and hash aligns with documented kernel thread behavior — detection rules specifically flag kworker masquerading only when these fields are non-empty. No network activity is present, ruling out C2 usage. There are no behavioral anomalies to support a malicious classification.
+
+    Processing Time: 27.58s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:28:09,751 | INFO | +0 conn
+2026-07-02 02:28:12,590 | INFO | +2 conn
+2026-07-02 02:28:14,839 | INFO | +0 conn
+2026-07-02 02:28:17,089 | INFO | Fallback polling detected missed process PID=25009
+2026-07-02 02:28:17,089 | INFO | Fallback polling detected missed process PID=25005
+2026-07-02 02:28:17,090 | INFO | Fallback polling detected missed process PID=25006
+2026-07-02 02:28:18,274 | INFO | +0 conn
+2026-07-02 02:28:19,951 | INFO | +0 conn
+2026-07-02 02:28:22,163 | INFO | Fallback polling detected missed process PID=25073
+2026-07-02 02:28:22,164 | INFO | Fallback polling detected missed process PID=25069
+2026-07-02 02:28:22,164 | INFO | Fallback polling detected missed process PID=25070
+2026-07-02 02:28:23,324 | INFO | +0 conn
+2026-07-02 02:28:25,011 | INFO | +0 conn
+2026-07-02 02:28:29,659 | INFO | 
+    ============================================================
+    Identifier: kworker/R-kvfree_rcu_reclaim
+
+    Telemetry Summary
+    -----------------
+    PID: 6
+    Process: kworker/R-kvfree_rcu_reclaim
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided for this process; kernel threads do not have an on-disk executable image to hash.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker/R-kvfree_rcu_reclaim is a documented Linux kernel workqueue thread responsible for RCU (Read-Copy-Update) memory reclamation. Linux kernel patch history confirms this workqueue ("kvfree_rcu_reclaim") was introduced in the mm/slab subsystem as a WQ_MEM_RECLAIM workqueue. No malicious match found in any threat intelligence source.
+
+## References Consulted
+
+• Linux Kernel Mailing List (lore.kernel.org / mail-archive.com)
+• Linux Kernel Documentation (kernel.org/doc/html/latest/core-api/workqueue.html)
+• Splunk Security Content (kworker masquerading detection reference)
+• Red Hat Knowledge Base
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/R-kvfree_rcu_reclaim is a legitimate Linux kernel workqueue thread for RCU memory reclamation, confirmed by kernel patch history and documentation.
+
+• PID 6 with Parent PID 2 (kthreadd) is the canonical and expected lineage for early-boot kernel threads on Linux.
+
+• Owner is root, consistent with all kernel threads running in kernel space.
+
+• No network connection present — no outbound or inbound activity observed.
+
+• No SHA-256 hash available, which is expected and normal for kernel threads that have no on-disk executable image.
+
+• No command line arguments, consistent with kernel thread behavior.
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. The process name, PID, parent PID (kthreadd/PID 2), owner, absence of network activity, and lack of a disk-backed executable are all expected characteristics of a kernel workqueue thread. Kernel patch records confirm kvfree_rcu_reclaim is a real, documented workqueue introduced in the Linux mm/slab subsystem. No threat intelligence matches exist. There are no indicators of masquerading, anomalous lineage, or suspicious behavior.
+
+    Processing Time: 17.45s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:28:35,769 | INFO | +2 conn
+2026-07-02 02:28:38,041 | INFO | +0 conn
+2026-07-02 02:28:42,023 | INFO | +0 conn
+2026-07-02 02:28:59,971 | INFO | 
+    ============================================================
+    Identifier: kworker/R-slub_flushwq
+
+    Telemetry Summary
+    -----------------
+    PID: 7
+    Process: kworker/R-slub_flushwq
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided; kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker/R-slub_flushwq is a documented legitimate Linux kernel workqueue thread responsible for flushing SLUB (slab allocator) per-CPU caches. Real-world ps output from multiple Linux distributions confirms [kworker/R-slub_flushwq] at PID 7 with PPID 2 (kthreadd) as a normal early-boot kernel thread. Threat intelligence notes that kworker masquerading is a known attacker technique, but the indicators for masquerading (non-null executable path, presence in writable directories, network connections) are entirely absent here.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org) — Workqueue
+• Arch Linux Forums — real-world ps output confirming kworker/R-slub_flushwq at PID 7
+• LinkedIn / Shlomi Boutnaru DFIR — slub_flushwq kernel thread analysis
+• Elastic Security Prebuilt Rules — Executable Masquerading as Kernel Process
+• Elastic Security / Detection.FYI — Network Activity Detected via Kworker
+• Splunk Security Content — Linux Kworker Process In Writable Process Path
+• Red Hat Customer Portal — kworker kernel thread documentation
+• Red Canary — Rocke cryptominer kworker masquerading analysis
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/R-slub_flushwq is a known legitimate Linux kernel workqueue thread for SLUB slab allocator cache flushing
+• PID 7 with PPID 2 (kthreadd) matches the canonical kernel thread lineage confirmed across multiple real Linux systems
+• No executable path present — consistent with genuine kernel threads, which have no on-disk binary
+• No command line present — expected behavior for kernel threads
+• No network connection of any kind
+• No SHA-256 hash — not applicable for kernel threads
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. The process name, PID, parent PID (kthreadd = 2), absent executable path, absent command line, and absence of any network activity all align precisely with documented kernel workqueue behavior. Real-world ps output from multiple Linux distributions confirms [kworker/R-slub_flushwq] at PID 7 as a normal early-boot kernel thread. The key masquerading indicators flagged by Elastic and Splunk detection rules — a non-null executable field, presence in writable directories, or outbound network connections — are entirely absent. No malicious evidence exists.
+
+    Processing Time: 24.31s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:29:06,304 | INFO | +2 conn
+2026-07-02 02:29:08,590 | INFO | +0 conn
+2026-07-02 02:29:13,647 | INFO | +0 conn
+2026-07-02 02:29:18,597 | INFO | +0 conn
+2026-07-02 02:29:21,266 | INFO | 
+    ============================================================
+    Identifier: kworker/R-netns
+
+    Telemetry Summary
+    -----------------
+    PID: 8
+    Process: kworker/R-netns
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided for this process; kernel threads do not have an associated on-disk executable.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker/R-netns is a legitimate Linux kernel worker thread. All kworker threads are children of kthreadd (PID 2), which is the standard kernel thread daemon responsible for spawning all kernel threads. The 'netns' suffix indicates this worker is associated with network namespace management, a normal kernel subsystem function.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org)
+• SUSE Communities — What is a kernel thread?
+• Red Hat Customer Portal — kworker threads
+• Medium — The Linux Process Journey: kworker & PID 2 (kthreadd)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name 'kworker/R-netns' matches the standard Linux kernel worker thread naming convention
+• Parent PID is 2 (kthreadd), the expected parent for all legitimate kernel threads
+• PID 8 is consistent with an early-spawned kernel thread during system boot
+• Owner is root, expected for kernel-level threads
+• No network connection present — no outbound or inbound activity to evaluate
+• No SHA-256 hash — expected, as kernel threads have no on-disk executable image
+
+## Assessment
+
+All telemetry indicators are consistent with a legitimate Linux kernel worker thread. kworker threads are spawned by kthreadd (PID 2) to handle asynchronous kernel work such as interrupts, timers, and I/O. The 'netns' suffix ties this worker to network namespace operations, a standard kernel subsystem. There is no network activity, no suspicious command line, and no hash anomaly. No threat intelligence concern exists.
+
+    Processing Time: 15.29s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:29:22,000 | INFO | +4 conn
+2026-07-02 02:29:24,266 | INFO | +0 conn
+2026-07-02 02:29:27,670 | INFO | +2 conn
+2026-07-02 02:29:29,358 | INFO | +0 conn
+2026-07-02 02:29:34,415 | INFO | +0 conn
+2026-07-02 02:29:38,338 | INFO | +0 conn
+2026-07-02 02:29:43,368 | INFO | +0 conn
+2026-07-02 02:29:46,456 | INFO | 
+    ============================================================
+    Identifier: kworker/0:0-pm
+
+    Telemetry Summary
+    -----------------
+    PID: 9
+    Process: kworker/0:0-pm
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash was provided for this process.
+
+## IP Lookup
+
+Not Available. No network connection is present.
+
+## Domain Lookup
+
+Not Available. No network connection is present.
+
+## Other Intelligence
+
+Legitimate kworker processes are native Linux kernel threads responsible for handling interrupts, timers, and background I/O tasks. Masquerading threats (e.g., Rocke cryptominer, CyclopsBlink) are distinguishable by executable paths in writable directories (/tmp, /home, /var/log), non-empty executable fields, or active network connections — none of which are present here. This record exhibits no anomalous indicators.
+
+## References Consulted
+
+• Red Hat Documentation (kworker/ksoftirqd kernel threads)
+• Elastic Security Detection Rules (kworker masquerading, network activity via kworker)
+• Splunk Security Content (Linux kworker in writable process path)
+• Red Canary (Rocke cryptominer kworker masquerading)
+• BleepingComputer (fake kworker malware persistence)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/0:0-pm with canonical naming format (CPU:thread-workqueue) consistent with a legitimate kernel thread
+• Parent PID 2 (kthreadd) — the expected parent for all Linux kernel worker threads
+• PID 9 — a very low PID consistent with early kernel thread initialization at boot
+• Owner is root — expected for kernel threads
+• No network connection present — eliminates C2 or cryptomining communication vectors
+• No executable path or command line — consistent with a true kernel thread, not a masquerading userspace binary
+
+## Assessment
+
+All telemetry is consistent with a legitimate Linux kernel worker thread. The process name follows the standard kworker/CPU:ID-workqueue format, is parented by PID 2 (kthreadd), carries a low PID indicating kernel-time initialization, and has no associated executable path or command line — exactly as expected for a true kernel thread. Known masquerading threats (Rocke, CyclopsBlink) are distinguished by userspace executable paths and active network connections, neither of which is present here.
+
+    Processing Time: 19.18s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:29:50,731 | INFO | +1 conn
+2026-07-02 02:29:51,287 | INFO | +1 conn
+2026-07-02 02:29:52,961 | INFO | +2 conn
+2026-07-02 02:29:57,936 | INFO | +0 conn
+2026-07-02 02:30:03,468 | INFO | +1 conn
+2026-07-02 02:30:05,764 | INFO | +1 conn
+2026-07-02 02:30:10,783 | INFO | +0 conn
+2026-07-02 02:30:12,082 | INFO | 
+    ============================================================
+    Identifier: kworker/0:0H-events_highpri
+
+    Telemetry Summary
+    -----------------
+    PID: 11
+    Process: kworker/0:0H-events_highpri
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided; kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker/0:0H-events_highpri is a well-documented legitimate Linux kernel thread. Real kernel threads have no executable path, no command line, and no hash — all consistent with this record. Masquerading detections (Elastic, Splunk, Sandfly) flag kworker processes only when a non-null executable field or writable-path parent is present, neither of which applies here.
+
+## References Consulted
+
+• Red Hat Customer Portal (kworker kernel thread documentation)
+• Linux Kernel Documentation (workqueue)
+• Elastic Detection Rules — Executable Masquerading as Kernel Process
+• Splunk Security Content — Linux Kworker Process In Writable Process Path
+• Sandfly Security — Detecting Linux Kernel Process Masquerading
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/0:0H-events_highpri matches standard Linux kernel high-priority workqueue thread naming convention
+• Parent PID 2 (kthreadd) is the correct and expected parent for all kernel threads
+• No executable path, no SHA-256 hash, and no command line — consistent with a genuine kernel thread
+• No network connection; no orphan connection
+• Thread count of 1 is normal for a per-CPU kernel worker
+• No masquerading indicators (non-null executable, writable-path parent) present
+
+## Assessment
+
+All telemetry attributes align precisely with a legitimate Linux kernel workqueue thread. The process is parented by kthreadd (PID 2), carries no executable or command-line data, and has no network activity — exactly what is expected for a real kworker thread. Threat intelligence sources confirm that masquerading detections require a non-empty executable field or suspicious parent path, neither of which is present here. No malicious indicators exist.
+
+    Processing Time: 19.62s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:30:18,671 | INFO | +2 conn
+2026-07-02 02:30:20,336 | INFO | Fallback polling detected missed process PID=25995
+2026-07-02 02:30:20,336 | INFO | Fallback polling detected missed process PID=25996
+2026-07-02 02:30:20,337 | INFO | Fallback polling detected missed process PID=25999
+2026-07-02 02:30:20,903 | INFO | +0 conn
+2026-07-02 02:30:21,482 | INFO | +0 conn
+2026-07-02 02:30:22,929 | INFO | Monitor stopped by user.
+2026-07-02 02:54:57,373 | INFO | Starting dynamic monitor | platform=Linux | process_interval=2.0s | network_interval=0.5s
+2026-07-02 02:54:57,407 | INFO | Collecting initial inventory of 455 running processes...
+2026-07-02 02:54:58,230 | INFO | Initial inventory completed (455 processes, 33 active connections)
+2026-07-02 02:54:59,541 | INFO | +1 conn
+2026-07-02 02:55:01,232 | INFO | +1 conn
+2026-07-02 02:55:03,513 | INFO | +0 conn
+2026-07-02 02:55:07,950 | INFO | +0 conn
+2026-07-02 02:55:08,544 | INFO | +0 conn
+2026-07-02 02:55:14,651 | INFO | 
+    ============================================================
+    Identifier: systemd
+
+    Telemetry Summary
+    -----------------
+    PID: 1
+    Process: systemd
+    Owner: root
+    Hash: e6168f67d1e4b4e11eed1ccacb94dcae19cf0a06b8f5ab1cc67dc9f519d3b5d1
+    Certificate: signed
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    /sbin/init
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+No malicious match found. The SHA-256 hash e6168f67d1e4b4e11eed1ccacb94dcae19cf0a06b8f5ab1cc67dc9f519d3b5d1 returned no hits across threat intelligence sources consulted.
+
+## IP Lookup
+
+Not Available. No outbound or inbound IP address present in telemetry.
+
+## Domain Lookup
+
+Not Available. No FQDN present in telemetry.
+
+## Other Intelligence
+
+The command line /sbin/init splash is a well-documented, expected invocation of the Linux init process. On modern Linux distributions, /sbin/init is a symbolic link to /lib/systemd/systemd, and the splash argument is a standard GRUB boot parameter. PID 1 with PPID 0 is the canonical process hierarchy for the Linux init system.
+
+## References Consulted
+
+• VirusTotal (hash search)
+• Baeldung on Linux — PID 1 / init process documentation
+• Linux Handbook — /sbin/init splash process documentation
+• Arch Linux Forums — /sbin/init process lineage
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name systemd running as PID 1 with PPID 0 — canonical Linux init hierarchy
+• Command line /sbin/init splash — standard boot invocation with expected GRUB splash parameter
+• Owner root — expected; the init process always runs as UID 0
+• Certificate status signed — binary is digitally signed
+• No network connection present — no outbound or inbound activity to evaluate
+• SHA-256 hash returned no malicious matches
+
+## Assessment
+
+All telemetry indicators are consistent with a legitimate Linux init process. PID 1 with PPID 0 is the standard process hierarchy for systemd on modern Linux distributions, where /sbin/init is a symlink to /lib/systemd/systemd. The splash argument is a routine GRUB boot parameter. No network activity is present, the binary is signed, and the hash produced no threat intelligence hits. There is no evidence of masquerading, anomalous lineage, or malicious behavior.
+
+    Processing Time: 17.23s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:55:21,124 | INFO | +2 conn
+2026-07-02 02:55:23,366 | INFO | +0 conn
+2026-07-02 02:55:28,473 | INFO | +0 conn
+2026-07-02 02:55:35,318 | INFO | 
+    ============================================================
+    Identifier: kthreadd
+
+    Telemetry Summary
+    -----------------
+    PID: 2
+    Process: kthreadd
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present; kthreadd is a kernel-space process with no on-disk executable.
+
+## IP Lookup
+
+Not Available. No network connection observed.
+
+## Domain Lookup
+
+Not Available. No network connection observed.
+
+## Other Intelligence
+
+kthreadd (PID 2) is a well-documented, legitimate Linux kernel thread daemon spawned at boot by the kernel's rest_init() function. It is the global parent of all kernel threads and runs entirely in kernel space. No malicious associations exist.
+
+## References Consulted
+
+• Linux Kernel Source (elixir.bootlin.com)
+• SUSE Communities — What is a kernel thread?
+• Medium — The Linux Process Journey: PID 2 (kthreadd)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• PID 2 with parent PID 0 — canonical Linux kernel thread lineage
+• Process name kthreadd matches expected kernel thread daemon
+• No command line or executable path — consistent with kernel-space process
+• No network connection of any kind
+• Owner is root — expected for kernel-space processes
+• No SHA-256 hash — expected; kthreadd has no on-disk binary
+
+## Assessment
+
+All telemetry is fully consistent with the legitimate Linux kernel thread daemon. kthreadd always runs as PID 2, is spawned by PID 0 (the idle/swapper process), carries no command line, has no on-disk executable, and makes no network connections. There are no anomalous indicators whatsoever. This record represents normal kernel activity.
+
+    Processing Time: 14.64s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:55:41,596 | INFO | +2 conn
+2026-07-02 02:55:43,892 | INFO | +0 conn
+2026-07-02 02:55:56,004 | INFO | 
+    ============================================================
+    Identifier: pool_workqueue_release
+
+    Telemetry Summary
+    -----------------
+    PID: 3
+    Process: pool_workqueue_release
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present; kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection observed.
+
+## Domain Lookup
+
+Not Available. No network connection observed.
+
+## Other Intelligence
+
+pool_workqueue_release is a legitimate Linux kernel internal thread. All kernel threads are spawned by kthreadd (PID 2) and carry PPID 2, which is consistent with this record. No malicious match found.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org/doc/Documentation/core-api/workqueue.rst)
+• Linux Kernel kthreadd source analysis (medium.com — Shlomi Boutnaru)
+• htop GitHub Issue #1001 — kernel thread identification criteria
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name pool_workqueue_release is a legitimate Linux kernel workqueue internal thread
+• PPID 2 (kthreadd) is the canonical parent for all Linux kernel threads
+• PID 3 is a very low PID consistent with early kernel thread creation at boot
+• Owner is root, expected for kernel-space threads
+• No network connection present
+• No command line or hash — expected behavior for kernel threads, which have no on-disk executable
+
+## Assessment
+
+All observed attributes are fully consistent with a legitimate Linux kernel thread. Kernel threads spawned by kthreadd (PID 2) always carry PPID 2, have no command line, no on-disk hash, and run as root. pool_workqueue_release is part of the Linux workqueue subsystem responsible for managing worker thread lifecycle. No network activity, no anomalous lineage, and no threat intelligence matches exist. This record is benign.
+
+    Processing Time: 14.68s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:56:02,203 | INFO | +2 conn
+2026-07-02 02:56:04,546 | INFO | +0 conn
+2026-07-02 02:56:10,817 | INFO | Fallback polling detected missed process PID=8509
+2026-07-02 02:56:13,127 | INFO | +0 conn
+2026-07-02 02:56:14,836 | INFO | +0 conn
+2026-07-02 02:56:22,836 | INFO | 
+    ============================================================
+    Identifier: kworker/R-rcu_gp
+
+    Telemetry Summary
+    -----------------
+    PID: 4
+    Process: kworker/R-rcu_gp
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash was provided for this process; legitimate kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection is present.
+
+## Domain Lookup
+
+Not Available. No network connection is present.
+
+## Other Intelligence
+
+kworker/R-rcu_gp is a well-documented Linux kernel thread. Real-world process listings confirm PID 4 assigned to [kworker/R-rcu_g] (rcu_gp) as a standard early-boot kernel thread parented to kthreadd (PID 2). No malicious match found.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org)
+• Red Hat Knowledgebase
+• Sandfly Security — Linux Kernel Process Masquerading
+• Elastic Detection Rules (detection.fyi)
+• Raspberry Pi Forums (real-world PID 4 kworker/R-rcu_gp confirmation)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/R-rcu_gp is a legitimate Linux kernel workqueue thread responsible for RCU (Read-Copy-Update) grace-period processing.
+• Parent PID 2 (kthreadd) is the correct and expected parent for all kernel threads on Linux.
+• PID 4 is consistent with early-boot kernel thread assignment, confirmed in real-world Linux process listings.
+• No command line and no executable hash are expected for genuine kernel threads; their command line fields are empty by design.
+• No network connection is present — no outbound or inbound activity to evaluate.
+• No SHA-256 hash is available, which is normal; kernel threads have no on-disk binary.
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. The process name, parent (kthreadd/PID 2), low PID assignment, absent command line, absent executable hash, and complete lack of network activity all align with expected kernel workqueue behavior. No masquerading indicators (e.g., non-empty executable path, writable-directory path, or anomalous parent) are present. No threat intelligence match exists.
+
+    Processing Time: 20.83s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:56:29,207 | INFO | +2 conn
+2026-07-02 02:56:30,924 | INFO | +0 conn
+2026-07-02 02:56:31,460 | INFO | Fallback polling detected missed process PID=9154
+2026-07-02 02:56:31,461 | INFO | Fallback polling detected missed process PID=9155
+2026-07-02 02:56:31,461 | INFO | Fallback polling detected missed process PID=9159
+2026-07-02 02:56:31,462 | INFO | Fallback polling detected missed process PID=9192
+2026-07-02 02:56:31,462 | INFO | Fallback polling detected missed process PID=9193
+2026-07-02 02:56:31,462 | INFO | Fallback polling detected missed process PID=9150
+2026-07-02 02:56:31,462 | INFO | Fallback polling detected missed process PID=9151
+2026-07-02 02:56:31,488 | INFO | +0 conn
+2026-07-02 02:56:32,048 | INFO | +0 conn
+2026-07-02 02:56:34,326 | INFO | +0 conn
+2026-07-02 02:56:35,419 | INFO | +1 conn
+2026-07-02 02:56:36,521 | INFO | +0 conn
+2026-07-02 02:56:41,672 | INFO | +0 conn
+2026-07-02 02:56:51,212 | INFO | 
+    ============================================================
+    Identifier: kworker/R-sync_wq
+
+    Telemetry Summary
+    -----------------
+    PID: 5
+    Process: kworker/R-sync_wq
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash was provided for this process.
+
+## IP Lookup
+
+Not Available. No network connection or destination IP is associated with this process.
+
+## Domain Lookup
+
+Not Available. No FQDN is associated with this process.
+
+## Other Intelligence
+
+While kworker process names are known to be abused for masquerading (e.g., Rocke cryptominer, CyclopsBlink), the key forensic indicators of masquerading — a non-null executable path, a command line, or a writable-directory path — are all absent here. This process exhibits the expected profile of a legitimate kernel thread.
+
+## References Consulted
+
+• Red Hat Knowledge Base (kworker/ksoftirqd kernel threads)
+• Linux Kernel Documentation (workqueue)
+• Elastic Security Prebuilt Rules (Executable Masquerading as Kernel Process)
+• Sandfly Security (Linux Kernel Process Masquerading)
+• Splunk Security Content (Linux Kworker Process In Writable Process Path)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/R-sync_wq is a standard Linux kernel workqueue thread naming convention
+• Parent PID is 2 (kthreadd), which is the expected parent for all legitimate kernel threads
+• No executable path or command line — consistent with genuine kernel threads, which have empty cmdline and no mapped executable
+• No network connection present — no outbound or inbound activity to evaluate
+• No SHA-256 hash available — expected for kernel threads, which have no on-disk binary
+• Thread count of 1 and root ownership are both normal for kernel worker threads
+
+## Assessment
+
+All telemetry attributes align with a legitimate Linux kernel thread. The process is parented by PID 2 (kthreadd), which is the canonical parent of all kernel threads. The absence of an executable path and command line is the primary forensic indicator distinguishing real kernel threads from masquerading malware. No network activity, no hash, and no anomalous path are present. There is no evidence of masquerading or malicious behavior.
+
+    Processing Time: 22.37s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:56:57,574 | INFO | +2 conn
+2026-07-02 02:56:59,885 | INFO | +0 conn
+2026-07-02 02:57:04,948 | INFO | +0 conn
+2026-07-02 02:57:07,341 | INFO | +1 conn
+2026-07-02 02:57:08,134 | INFO | +1 conn
+2026-07-02 02:57:09,846 | INFO | +0 conn
+2026-07-02 02:57:14,817 | INFO | +0 conn
+2026-07-02 02:57:18,643 | INFO | 
+    ============================================================
+    Identifier: kworker/R-kvfree_rcu_reclaim
+
+    Telemetry Summary
+    -----------------
+    PID: 6
+    Process: kworker/R-kvfree_rcu_reclaim
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash is present for this process, which is expected — legitimate Linux kernel threads do not have an associated executable binary or hash.
+
+## IP Lookup
+
+Not Available. No network connection is present.
+
+## Domain Lookup
+
+Not Available. No network connection is present.
+
+## Other Intelligence
+
+Kernel documentation and independent Linux process listings confirm that kworker/R-kvfree_rcu_reclaim is a legitimate kernel workqueue thread responsible for RCU (Read-Copy-Update) memory reclaim operations. It is allocated via alloc_workqueue("kvfree_rcu_reclaim", WQ_UNBOUND | WQ_MEM_RECLAIM, 0) in mm/slab_common.c. Published Linux process tables show PID 6 assigned to kworker/R-kvfree_rcu_reclaim as a standard early-boot kernel thread parented to kthreadd (PID 2).
+
+## References Consulted
+
+• Linux Kernel Mailing List (linux-kernel@vger.kernel.org) — kvfree_rcu workqueue patch discussion
+• Linux Kernel Documentation (kernel.org) — Workqueue subsystem
+• Ken Muse — Building Container Isolation From the Linux Kernel Up (process table reference)
+• Sandfly Security — Detecting Linux Kernel Process Masquerading
+• Elastic Detection Rules — Executable Masquerading as Kernel Process
+• Splunk Security Content — Linux Kworker Process In Writable Process Path
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/R-kvfree_rcu_reclaim is a documented legitimate Linux kernel workqueue thread for RCU memory reclaim
+• PID 6 with parent PID 2 (kthreadd) matches the expected early-boot kernel thread hierarchy
+• No executable hash (None) — consistent with genuine kernel threads, which have no associated userland binary
+• No command line — consistent with genuine kernel threads, which do not execute from a command line
+• No network connection — no outbound or inbound activity observed
+• Owner is root, thread count is 1 — both consistent with a kernel worker thread
+
+## Assessment
+
+All telemetry attributes align precisely with a legitimate Linux kernel thread. Published kernel source and process tables confirm kworker/R-kvfree_rcu_reclaim at PID 6 under kthreadd (PID 2) is a standard early-boot workqueue thread. The absence of a hash, executable path, and command line is expected behavior for real kernel threads — their presence would instead be the masquerading indicator. No network activity, no suspicious path, and no threat intelligence matches exist. Classification is BENIGN with high confidence.
+
+    Processing Time: 21.42s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:57:24,974 | INFO | +2 conn
+2026-07-02 02:57:27,218 | INFO | +0 conn
+2026-07-02 02:57:34,554 | INFO | +0 conn
+2026-07-02 02:57:43,837 | INFO | 
+    ============================================================
+    Identifier: kworker/R-slub_flushwq
+
+    Telemetry Summary
+    -----------------
+    PID: 7
+    Process: kworker/R-slub_flushwq
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided; kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker/R-slub_flushwq is a well-documented Linux kernel worker thread. Real-world process listings confirm PID 7 with PPID 2 (kthreadd) and the name [kworker/R-slub_flushwq] as a standard kernel workqueue thread. Legitimate kernel threads carry no executable path, no command line, and no SHA-256 hash — all consistent with this record.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org/doc/Documentation/core-api/workqueue)
+• Red Hat Knowledge Base — kworker/ksoftirqd threads
+• Arch Linux Forums — real-world ps output confirming kworker/R-slub_flushwq at PID 7
+• Sandfly Security — Linux kernel process masquerading forensics
+• Elastic Detection Rules — Executable Masquerading as Kernel Process (T1036.004)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/R-slub_flushwq is a legitimate Linux kernel workqueue thread responsible for SLUB allocator flush operations
+• PID 7 with PPID 2 (kthreadd) matches the exact expected kernel thread hierarchy confirmed in real-world system listings
+• No executable path, no command line, and no SHA-256 hash — all consistent with a true kernel thread
+• No network connection of any kind
+• No orphan connection
+• No masquerading indicators: a malicious impersonator would typically carry a non-null executable path and/or command line arguments
+
+## Assessment
+
+All telemetry attributes align precisely with a legitimate Linux kernel worker thread. The PID/PPID hierarchy (7 → 2/kthreadd), absent executable, absent command line, and absent network activity are canonical properties of a real kernel thread. Elastic and Sandfly Security detection guidance flags kworker masqueraders specifically when process.executable is non-null — which is not the case here. No threat intelligence match exists for any artifact in this record.
+
+    Processing Time: 19.19s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:57:44,711 | INFO | +0 conn
+2026-07-02 02:57:46,381 | INFO | +0 conn
+2026-07-02 02:57:48,660 | INFO | +4 conn
+2026-07-02 02:57:50,367 | INFO | +2 conn
+2026-07-02 02:57:50,937 | INFO | +0 conn
+2026-07-02 02:57:55,969 | INFO | +0 conn
+2026-07-02 02:58:05,644 | INFO | 
+    ============================================================
+    Identifier: kworker/R-netns
+
+    Telemetry Summary
+    -----------------
+    PID: 8
+    Process: kworker/R-netns
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. Kernel threads do not have an on-disk executable and therefore carry no SHA-256 hash.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker/R-netns is a well-documented legitimate Linux kernel thread. Kernel threads with names matching kworker/* and parented to PID 2 (kthreadd) are standard OS components. No malicious match found for this process name, lineage, or behavior pattern.
+
+## References Consulted
+
+• SUSE Communities — What is a kernel thread?
+• Red Hat Customer Portal — kworker and ksoftirqd threads
+• Linux Foundation Forums — kthreadd (PID 2)
+• detection.fyi — Elastic Detection Rule: Network Activity via Kworker
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• kworker/R-netns is a recognized Linux kernel thread responsible for network namespace workqueue operations
+• Parent PID is 2 (kthreadd), which is the expected and only legitimate parent for all kernel threads
+• No network connection present — no outbound or inbound activity to evaluate
+• No SHA-256 hash — expected behavior, as kernel threads have no on-disk executable image
+• Owner is root — normal for kernel-level threads
+• No command line — consistent with kernel thread behavior
+
+## Assessment
+
+All observed attributes are fully consistent with a legitimate Linux kernel thread. kworker threads are parented exclusively to PID 2 (kthreadd), carry no executable hash, have no command line, and run as root — all of which match this record exactly. No network activity is present, eliminating the primary abuse vector (C2 masquerading) flagged by detection rules for kworker processes. There is no evidence of masquerading, anomalous lineage, or suspicious behavior.
+
+    Processing Time: 15.8s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:58:11,818 | INFO | +2 conn
+2026-07-02 02:58:12,978 | INFO | +1 conn
+2026-07-02 02:58:14,120 | INFO | +0 conn
+2026-07-02 02:58:19,137 | INFO | +0 conn
+2026-07-02 02:58:35,425 | INFO | 
+    ============================================================
+    Identifier: kworker/0:0-events
+
+    Telemetry Summary
+    -----------------
+    PID: 9
+    Process: kworker/0:0-events
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided; consistent with a true kernel thread which has no on-disk executable.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker masquerading is a documented threat technique (MITRE T1036.004), but key malicious indicators are absent here: no executable path, no hash, no command line, no network activity, and PID/PPID (9/2) are consistent with legitimate kernel thread lineage. Malicious kworker impersonators typically present with a non-null executable path, a writable-directory path, or network activity.
+
+## References Consulted
+
+• Red Hat Documentation (kworker kernel threads)
+• Elastic Security Prebuilt Rules (Executable Masquerading as Kernel Process)
+• Splunk Security Content (Linux Kworker Process In Writable Process Path)
+• Sandfly Security (Linux Kernel Process Masquerading)
+• MITRE ATT&CK T1036.004 (Masquerade Task or Service)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/0:0-events follows standard Linux kernel thread naming convention
+• PID 9 with Parent PID 2 (kthreadd) is consistent with legitimate kernel thread lineage
+• No executable path or SHA-256 hash — expected for genuine kernel threads
+• No command line arguments — expected for genuine kernel threads
+• No network connections of any kind
+• No writable-directory path, no orphan connection, no encoded payload
+
+## Assessment
+
+All telemetry attributes align with a legitimate Linux kernel worker thread. Legitimate kworker processes have no on-disk executable, no command line, and no network activity — all of which are confirmed absent here. Malicious kworker masqueraders are distinguished by a non-null executable path (often in /tmp or /home), network connections, or anomalous parent lineage, none of which are present. No threat intelligence match exists for any artifact in this record.
+
+    Processing Time: 23.77s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:58:41,600 | INFO | +2 conn
+2026-07-02 02:58:42,195 | INFO | +0 conn
+2026-07-02 02:58:43,877 | INFO | +0 conn
+2026-07-02 02:58:47,278 | INFO | +1 conn
+2026-07-02 02:58:47,830 | INFO | +0 conn
+2026-07-02 02:58:48,925 | INFO | +0 conn
+2026-07-02 02:58:53,960 | INFO | +0 conn
+2026-07-02 02:58:59,503 | INFO | +0 conn
+2026-07-02 02:59:04,216 | INFO | 
+    ============================================================
+    Identifier: kworker/0:1-events
+
+    Telemetry Summary
+    -----------------
+    PID: 10
+    Process: kworker/0:1-events
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present, which is expected — real kernel threads have no on-disk executable.
+
+## IP Lookup
+
+Not Available. No network connection recorded.
+
+## Domain Lookup
+
+Not Available. No network connection recorded.
+
+## Other Intelligence
+
+kworker processes are legitimate Linux kernel threads responsible for handling interrupts, timers, and I/O workqueues. Masquerading threats (e.g., Rocke cryptominer, CyclopsBlink) are flagged when kworker-named processes carry a non-null executable path, reside in writable directories, or generate network activity — none of which are present here.
+
+## References Consulted
+
+• Red Hat Knowledge Base (kworker/ksoftirqd kernel threads)
+• Linux Kernel Documentation (workqueue.html)
+• Elastic Security Prebuilt Rules — Executable Masquerading as Kernel Process
+• Splunk Security Content — Linux Kworker Process In Writable Process Path
+• Sandfly Security — Detecting Linux Kernel Process Masquerading
+• Red Canary — Rocke Cryptominer Threat Hunting
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Parent PID is 2 (kthreadd) — the legitimate parent of all Linux kernel threads
+• PID 10 — low PID consistent with early kernel thread assignment at boot
+• No executable hash — expected; real kernel threads have no on-disk binary
+• No command line — expected; legitimate kernel threads carry no CLI arguments
+• No network connection — no outbound or inbound activity observed
+• Process name follows standard kworker naming convention (kworker/<cpu>:<id>-<workqueue>)
+
+## Assessment
+
+All telemetry attributes are consistent with a legitimate Linux kernel worker thread. The process is parented by kthreadd (PID 2), carries no executable path or command line, and has no network activity — the exact profile of a genuine kernel thread. Known masquerading threats such as Rocke and CyclopsBlink are distinguished by the presence of a non-null executable path (often in /tmp or writable directories) and network connections, neither of which are present here.
+
+    Processing Time: 22.78s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:59:10,726 | INFO | +2 conn
+2026-07-02 02:59:12,983 | INFO | +0 conn
+2026-07-02 02:59:18,176 | INFO | +1 conn
+2026-07-02 02:59:23,192 | INFO | +0 conn
+2026-07-02 02:59:28,181 | INFO | 
+    ============================================================
+    Identifier: kworker/0:0H-events_highpri
+
+    Telemetry Summary
+    -----------------
+    PID: 11
+    Process: kworker/0:0H-events_highpri
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided; kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker/0:0H-events_highpri is a well-documented Linux kernel thread. Real kernel threads have no executable path, no command-line arguments, and no SHA-256 hash — all consistent with this record. Masquerading indicators (non-empty executable field, writable-path parent, network activity) are absent here.
+
+## References Consulted
+
+• Red Hat Customer Portal — kworker/ksoftirqd kernel thread documentation
+• Linux Kernel Documentation (kernel.org) — Workqueue internals
+• Sandfly Security — Linux kernel process masquerading forensics
+• Elastic Detection Rules — Executable Masquerading as Kernel Process (T1036.004)
+• Splunk Security Content — Linux kworker in writable path detection
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name kworker/0:0H-events_highpri matches a standard Linux high-priority kernel workqueue thread
+• Parent PID 2 (kthreadd) is the correct and expected parent for all kernel threads
+• No executable path, no SHA-256 hash, and no command-line arguments — consistent with a genuine kernel thread
+• No network connection present; no orphan connection
+• No masquerading indicators: no non-empty executable field, no writable-directory path, no anomalous parent
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. The process name, parent PID 2 (kthreadd), absent executable, absent command line, and absent network activity all align with expected kernel workqueue behavior. No masquerading indicators are present, and no threat intelligence matches exist for any artifact in this record.
+
+    Processing Time: 17.96s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:59:34,431 | INFO | +2 conn
+2026-07-02 02:59:36,688 | INFO | +0 conn
+2026-07-02 02:59:41,764 | INFO | +0 conn
+2026-07-02 02:59:47,960 | INFO | +6 conn
+2026-07-02 02:59:50,149 | INFO | +0 conn
+2026-07-02 02:59:52,038 | INFO | 
+    ============================================================
+    Identifier: kworker/u64:0-comp_1.1.0
+
+    Telemetry Summary
+    -----------------
+    PID: 12
+    Process: kworker/u64:0-comp_1.1.0
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash provided for this process.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+kworker is a well-documented legitimate Linux kernel thread. Malicious masquerading of kworker is known (Rocke cryptominer, CyclopsBlink, fake PoC malware), but those cases involve a disk-backed executable path, a command line pointing to writable directories (/tmp, /home, /var/log), or anomalous network activity — none of which are present here.
+
+## References Consulted
+
+• Elastic Security Detection Rules (kworker masquerading)
+• Splunk Security Content (Linux kworker in writable path)
+• Red Canary (Rocke cryptominer kworker analysis)
+• Linux Kernel Documentation (workqueue/kworker)
+• Detection.FYI (Executable Masquerading as Kernel Process)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• PID 2 parent — consistent with kthreadd, the legitimate kernel thread daemon that spawns all kworker threads
+
+• PID 12 — low PID value typical of early kernel thread initialization
+
+• No executable path or command line — legitimate kernel threads run without an associated on-disk binary, which is the expected behavior
+
+• No network connection — no outbound or inbound activity observed
+
+• Owner is root — standard for kernel threads
+
+• Thread count of 1 — normal for a single kernel worker thread
+
+## Assessment
+
+All telemetry attributes align with a legitimate Linux kernel worker thread. The process is parented by PID 2 (kthreadd), carries a low PID consistent with early kernel initialization, has no executable path or command line, and has no network activity. Known malicious kworker masquerading cases (Rocke, CyclopsBlink, fake PoC malware) are distinguished by the presence of a disk-backed executable in a writable directory and/or anomalous network connections — neither of which is present here. No threat intelligence match exists for any available indicator.
+
+    Processing Time: 17.85s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 02:59:55,224 | INFO | +0 conn
+2026-07-02 02:59:58,598 | INFO | +2 conn
+2026-07-02 03:00:00,796 | INFO | +0 conn
+2026-07-02 03:00:05,711 | INFO | +0 conn
+2026-07-02 03:00:14,668 | INFO | 
+    ============================================================
+    Identifier: kworker/R-mm_percpu_wq
+
+    Telemetry Summary
+    -----------------
+    PID: 13
+    Process: kworker/R-mm_percpu_wq
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present; kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection observed.
+
+## Domain Lookup
+
+Not Available. No network connection observed.
+
+## Other Intelligence
+
+kworker/R-mm_percpu_wq is a documented Linux kernel worker thread. mm_percpu_wq is the vmstat worker thread responsible for updating virtual memory statistics counters, created during kernel initialization via init_mm_internals. Legitimate kernel threads carry no executable path, no command line, and no SHA-256 hash — all consistent with this record. No malicious match found.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org) — Workqueue API
+• Red Hat Customer Portal — kworker kernel thread documentation
+• Medium / Shlomi Boutnaru — mm_percpu_wq kernel thread analysis
+• Sandfly Security — Linux kernel process masquerading forensics
+• Elastic Detection Rules — Executable Masquerading as Kernel Process (T1036.004)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• PID 13, PPID 2 (kthreadd) — canonical kernel thread lineage
+• Process name kworker/R-mm_percpu_wq matches documented Linux vmstat worker thread
+• No executable path, no command line, no SHA-256 hash — consistent with a true kernel thread
+• No network connection, no orphan connection
+• Owner is root — expected for kernel threads
+• Certificate status unknown — not applicable to kernel threads
+
+## Assessment
+
+All telemetry attributes are consistent with a legitimate Linux kernel worker thread. mm_percpu_wq is the documented vmstat worker that updates virtual memory statistics counters, spawned by kthreadd (PID 2). The absence of an executable path, command line, and hash is expected behavior for real kernel threads. No network activity and no masquerading indicators are present. No threat intelligence matches were identified.
+
+    Processing Time: 16.62s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 03:00:19,150 | INFO | +1 conn
+2026-07-02 03:00:20,836 | INFO | +2 conn
+2026-07-02 03:00:21,401 | INFO | +0 conn
+2026-07-02 03:00:22,068 | INFO | +1 conn
+2026-07-02 03:00:23,197 | INFO | +1 conn
+2026-07-02 03:00:26,523 | INFO | +0 conn
+2026-07-02 03:00:36,582 | INFO | 
+    ============================================================
+    Identifier: ksoftirqd/0
+
+    Telemetry Summary
+    -----------------
+    PID: 14
+    Process: ksoftirqd/0
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present; kernel threads do not have an on-disk executable and therefore produce no file hash.
+
+## IP Lookup
+
+Not Available. No network connection associated with this process.
+
+## Domain Lookup
+
+Not Available. No network connection associated with this process.
+
+## Other Intelligence
+
+ksoftirqd/0 is a well-documented, legitimate Linux kernel thread. It is spawned at early boot by the kernel itself (parent PID 2, kthreadd) and runs as root with no command-line arguments, which is entirely expected behavior.
+
+## References Consulted
+
+• Linux Kernel Documentation (man.cx/ksoftirqd)
+• Red Hat Customer Portal — kworker/ksoftirqd article
+• Linux Kernel Internals (kernel-internals.org)
+• Baeldung Linux — ksoftirqd high CPU article
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• ksoftirqd/0 is a legitimate per-CPU Linux kernel soft-interrupt handler thread
+• Parent PID 2 (kthreadd) is the canonical parent for all kernel threads
+• PID 14 is a low, boot-time PID consistent with early kernel thread initialization
+• No network connection present; no outbound or inbound activity
+• No executable hash expected — kernel threads have no on-disk binary
+• Owner is root, thread count is 1, and command line is None — all consistent with kernel thread behavior
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. ksoftirqd/0 is a per-CPU kernel thread responsible for handling deferred software interrupts, spawned at boot under kthreadd (PID 2). The low PID, root ownership, absent command line, no network activity, and no executable hash are all expected and normal. No threat intelligence indicators of any kind are present.
+
+    Processing Time: 15.91s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 03:00:38,015 | INFO | +0 conn
+2026-07-02 03:00:43,012 | INFO | +2 conn
+2026-07-02 03:00:45,214 | INFO | +0 conn
+2026-07-02 03:00:58,292 | INFO | 
+    ============================================================
+    Identifier: rcu_preempt
+
+    Telemetry Summary
+    -----------------
+    PID: 15
+    Process: rcu_preempt
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present; rcu_preempt is a kernel thread with no on-disk executable.
+
+## IP Lookup
+
+Not Available. No network connection observed.
+
+## Domain Lookup
+
+Not Available. No network connection observed.
+
+## Other Intelligence
+
+rcu_preempt is a well-documented Linux kernel grace-period kthread. Kernel logs and official documentation confirm it runs with PID 15 and PPID 2 (kthreadd) on PREEMPT_RT-enabled kernels. No threat intelligence source associates this process with malicious activity.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org)
+• Proxmox Community Forum (kernel thread PID/PPID confirmation)
+• Red Hat Customer Portal
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• rcu_preempt is a legitimate Linux kernel RCU grace-period kthread
+• PPID 2 (kthreadd) is the canonical parent for all kernel threads
+• PID 15 matches documented kernel thread assignments on PREEMPT_RT builds
+• No network connection, no command line, no on-disk executable — all expected for a kthread
+• No SHA-256 hash (kernel threads have no userspace binary)
+• No malicious threat intelligence match found
+
+## Assessment
+
+rcu_preempt is a native Linux kernel thread responsible for managing RCU (Read-Copy-Update) grace periods on preemptible kernels. Its parent is kthreadd (PID 2), its PID 15 is consistent with documented kernel behavior, it has no command line or executable hash, and it makes no network connections. All observed attributes are fully consistent with normal kernel operation. No threat intelligence source flags this process.
+
+    Processing Time: 15.7s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 03:01:04,582 | INFO | +2 conn
+2026-07-02 03:01:06,767 | INFO | +0 conn
+2026-07-02 03:01:11,814 | INFO | +0 conn
+2026-07-02 03:01:19,284 | INFO | 
+    ============================================================
+    Identifier: rcu_exp_par_gp_kthread_worker/0
+
+    Telemetry Summary
+    -----------------
+    PID: 16
+    Process: rcu_exp_par_gp_kthread_worker/0
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present for this record; kernel threads do not have an associated executable on disk.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+rcu_exp_par_gp_kthread_worker is a legitimate Linux kernel internal thread created via kthread_create_worker() under CONFIG_RCU_EXP_KTHREAD. It handles expedited RCU (Read-Copy-Update) parallel grace period work at real-time priority. Confirmed in upstream Linux kernel source (kernel/rcu/tree.c) and Linux Kernel Mailing List patches.
+
+## References Consulted
+
+• Linux Kernel Source (kernel/rcu/tree.c) via mail-archive.com
+• Linux Kernel Mailing List (lkml.iu.edu)
+• Linux Kernel Documentation (docs.kernel.org/RCU)
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name matches a known Linux kernel internal RCU kthread (rcu_exp_par_gp_kthread_worker)
+• Parent PID 2 (kthreadd) — canonical parent for all Linux kernel threads
+• PID 16 — low PID consistent with early kernel thread initialization
+• Owner is root — expected for kernel threads
+• No network connection present
+• No SHA-256 hash — expected; kernel threads have no on-disk executable
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. rcu_exp_par_gp_kthread_worker is spawned by kthreadd (PID 2) during early boot to handle expedited RCU parallel grace period work, as confirmed by upstream kernel source and LKML patch history. The low PID, root ownership, absence of a command line, no network activity, and no hash are all expected characteristics of a kernel thread. No malicious indicators are present.
+
+    Processing Time: 14.99s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 03:01:24,845 | INFO | +1 conn
+2026-07-02 03:01:25,416 | INFO | +2 conn
+2026-07-02 03:01:27,120 | INFO | +0 conn
+2026-07-02 03:01:28,263 | INFO | +1 conn
+2026-07-02 03:01:32,236 | INFO | +0 conn
+2026-07-02 03:01:35,649 | INFO | +1 conn
+2026-07-02 03:01:37,912 | INFO | +0 conn
+2026-07-02 03:01:42,528 | INFO | 
+    ============================================================
+    Identifier: rcu_exp_gp_kthread_worker
+
+    Telemetry Summary
+    -----------------
+    PID: 17
+    Process: rcu_exp_gp_kthread_worker
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. Linux kernel threads do not have an on-disk executable or associated SHA-256 hash.
+
+## IP Lookup
+
+Not Available. No network connection present.
+
+## Domain Lookup
+
+Not Available. No network connection present.
+
+## Other Intelligence
+
+rcu_exp_gp_kthread_worker is a legitimate Linux kernel RCU (Read-Copy-Update) grace-period worker thread. Kernel documentation and Linux kernel mailing list sources confirm it is an internal kthread responsible for handling expedited RCU grace periods. PID 17 with PPID 2 (kthreadd) is consistent with normal kernel thread lineage observed across multiple Linux distributions.
+
+## References Consulted
+
+• Linux Kernel Documentation (kernel.org) — kernel-per-CPU-kthreads.txt
+• Linux Kernel Mailing List (spinics.net, openwall.net)
+• Amazon Linux 2023 GitHub Issue Tracker
+• Red Hat Customer Portal
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name rcu_exp_gp_kthread_worker is a documented Linux kernel RCU grace-period worker thread
+• PPID 2 (kthreadd) is the canonical parent of all Linux kernel threads
+• Owner is root with no command line — consistent with kernel thread behavior
+• No network connection, no orphan connection, no outbound or inbound activity
+• No SHA-256 hash — expected, as kernel threads have no on-disk executable
+• Thread count of 1 is normal for this type of kthread
+
+## Assessment
+
+All telemetry attributes are fully consistent with a legitimate Linux kernel thread. The process name, PPID of 2 (kthreadd), root ownership, absent command line, and lack of any network activity all align precisely with documented kernel RCU subsystem behavior. No threat intelligence matches exist. There are no behavioral anomalies to suggest masquerading or abuse.
+
+    Processing Time: 17.24s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 03:01:48,668 | INFO | +2 conn
+2026-07-02 03:01:50,915 | INFO | +0 conn
+2026-07-02 03:02:02,904 | INFO | 
+    ============================================================
+    Identifier: migration/0
+
+    Telemetry Summary
+    -----------------
+    PID: 18
+    Process: migration/0
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present; migration/0 is a kernel thread with no on-disk executable.
+
+## IP Lookup
+
+Not Available. No network connection observed.
+
+## Domain Lookup
+
+Not Available. No network connection observed.
+
+## Other Intelligence
+
+migration/0 is a well-documented Linux kernel thread. It is created per-CPU by the kernel's smp_hotplug_thread mechanism and is responsible for moving tasks between CPU run-queues for load balancing. It runs as root under PPID 2 (kthreadd), has no on-disk binary, and never initiates network connections.
+
+## References Consulted
+
+• Linux Kernel Documentation (systutorials.com)
+• Red Hat Customer Portal
+• Medium / Shlomi Boutnaru Linux Process Journey
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name migration/0 is a legitimate Linux per-CPU kernel scheduler thread
+• PPID 2 (kthreadd) is the correct parent for all Linux kernel threads
+• Owner is root, consistent with kernel thread ownership
+• No SHA-256 hash — expected, as kernel threads have no on-disk executable image
+• No network connection of any kind — consistent with normal kernel thread behavior
+• Single thread count — normal for a per-CPU stopper/migration thread
+
+## Assessment
+
+migration/0 is a native Linux kernel thread spawned by kthreadd (PID 2) to handle CPU load balancing by moving tasks between per-CPU run-queues. All observed attributes — root ownership, PPID 2, absence of a binary hash, no command line, and no network activity — are fully consistent with legitimate kernel thread behavior. No threat intelligence matches exist for this process.
+
+    Processing Time: 14.37s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 03:02:09,332 | INFO | +2 conn
+2026-07-02 03:02:11,583 | INFO | +0 conn
+2026-07-02 03:02:22,772 | INFO | 
+    ============================================================
+    Identifier: idle_inject/0
+
+    Telemetry Summary
+    -----------------
+    PID: 19
+    Process: idle_inject/0
+    Owner: root
+    Hash: None
+    Certificate: unknown
+
+    Has Connection: False
+    Orphan Connection: False
+    
+    Executable Path : 
+    
+
+    Destination IP:
+    None
+
+    Destination FQDN:
+    None
+
+    Destination Port:
+    None
+
+    Protocol:
+    None
+
+    Connection State:
+    None
+
+    AI Classification
+    -----------------
+    Classification: BENIGN
+    Confidence: HIGH
+
+    Threat Intel
+    ------------
+    ## Hash Lookup
+
+Not Available. No SHA-256 hash present; idle_inject kernel threads have no on-disk executable to hash.
+
+## IP Lookup
+
+Not Available. No network connection associated with this process.
+
+## Domain Lookup
+
+Not Available. No network connection associated with this process.
+
+## Other Intelligence
+
+Linux kernel source (torvalds/linux) confirms idle_inject/N is a legitimate per-CPU kernel thread residing in drivers/powercap/idle_inject.c, used for thermal and power management. No malicious match found.
+
+## References Consulted
+
+• Linux Kernel Source (github.com/torvalds/linux)
+• Linux Kernel Mailing List (lkml.iu.edu)
+• Medium — The Linux Process Journey: idle_inject
+
+    Reason
+    ------
+    ## Indicators Observed
+
+• Process name idle_inject/0 matches the well-known Linux per-CPU kernel thread naming pattern (idle_inject/N)
+
+• PID 19 and Parent PID 2 (kthreadd) are consistent with a legitimate kernel thread spawned at init time
+
+• Owner is root, expected for all kernel threads
+
+• No network connection, no outbound/inbound IP, no command line — all consistent with a kernel-space thread with no user-land address space
+
+• No SHA-256 hash available, which is normal since kernel threads have no on-disk executable image
+
+## Assessment
+
+idle_inject/0 is a legitimate Linux kernel thread created by kthreadd (PID 2) at boot time for CPU thermal and power management purposes. Its PID, parent, owner, absence of a command line, and lack of any network activity are all fully consistent with normal kernel thread behavior. No threat intelligence matches exist, and no behavioral anomalies are present.
+
+    Processing Time: 13.86s
+
+    Status: SUCCESS
+    ============================================================
+    
+2026-07-02 03:02:28,570 | INFO | +0 conn
+2026-07-02 03:02:29,113 | INFO | +2 conn
+2026-07-02 03:02:31,365 | INFO | +0 conn
+2026-07-02 03:02:32,487 | INFO | +1 conn
+2026-07-02 03:02:33,968 | INFO | Monitor stopped by user.
+2026-07-10 10:36:18,762 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:20,918 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:23,026 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:25,132 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:27,305 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:29,413 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:31,514 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:33,624 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+2026-07-10 10:36:35,832 | ERROR | "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"
+Traceback (most recent call last):
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 346, in consume_queue
+    append_results(classified_df, results_file)
+  File "/home/thio/projects/random/ResearchProject/AI_model_classification_Final.py", line 144, in append_results
+    df.to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/generic.py", line 3967, in to_csv
+    return DataFrameRenderer(formatter).to_csv(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/format.py", line 995, in to_csv
+    csv_formatter = CSVFormatter(
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 98, in __init__
+    self.cols = self._initialize_columns(cols)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/io/formats/csvs.py", line 167, in _initialize_columns
+    self.obj = self.obj.loc[:, cols]
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1184, in __getitem__
+    return self._getitem_tuple(key)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1377, in _getitem_tuple
+    return self._getitem_tuple_same_dim(tup)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1020, in _getitem_tuple_same_dim
+    retval = getattr(retval, self.name)._getitem_axis(key, axis=i)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1420, in _getitem_axis
+    return self._getitem_iterable(key, axis=axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1360, in _getitem_iterable
+    keyarr, indexer = self._get_listlike_indexer(key, axis)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexing.py", line 1558, in _get_listlike_indexer
+    keyarr, indexer = ax._get_indexer_strict(key, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6200, in _get_indexer_strict
+    self._raise_if_missing(keyarr, indexer, axis_name)
+  File "/home/thio/.local/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 6252, in _raise_if_missing
+    raise KeyError(f"{not_found} not in index")
+KeyError: "['network_protocol', 'network_connection_state', 'network_out_process_ip', 'network_out_process_fqdn', 'network_out_process_port', 'network_out_process_service', 'network_in_process_ip', 'network_in_process_fqdn', 'network_in_process_port', 'network_in_process_service'] not in index"

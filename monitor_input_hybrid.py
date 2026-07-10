@@ -8,6 +8,7 @@ Hybrid event-driven monitor:
 - Polling-based network connection monitoring with enhanced timing metadata.
 
 Emits ONLY new/ended processes and connections (deltas), not full snapshots.
+Queues telemetry in a SQLite database for downstream AI classification.
 
 Dependencies:
     pip install psutil
@@ -15,7 +16,7 @@ Dependencies:
     pip install pywin32   # for pythoncom / COM initialization
 
 Usage:
-    python monitor_input_hybrid.py                         # 2s interval (process fallback), 0.5s network polling
+    python monitor_input_hybrid.py                         # 2s interval, 0.5s network polling
     python monitor_input_hybrid.py --interval 1            # 1s interval
     python monitor_input_hybrid.py --output events.jsonl   # append events to file
     python monitor_input_hybrid.py --emit-ended            # also emit process_ended / connection_ended events
@@ -33,6 +34,7 @@ import platform
 import datetime
 import subprocess
 import threading
+import sqlite3
 
 import psutil
 
@@ -46,6 +48,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [Monitor] %(levelnam
 log = logging.getLogger("fig2_monitor")
 
 OS_PLATFORM = platform.system()
+DB_DEFAULT_PATH = "iepis_queue.db"
+
+# Thread lock for SQLite writes
+DB_LOCK = threading.Lock()
 
 # ----------------------------------------------------------
 # Cache expensive operations (hashing & signature checking)
@@ -60,7 +66,54 @@ DNS_CACHE = {}
 
 
 # ─────────────────────────────────────────────────────────
-# Helpers (same as fig2_extractor.py)
+# Database Helpers
+# ─────────────────────────────────────────────────────────
+def setup_database(db_path: str):
+    """Initialize the SQLite database and table structure."""
+    with DB_LOCK:
+        with sqlite3.connect(db_path) as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS event_queue (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    fingerprint TEXT UNIQUE,
+                    payload TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
+
+
+def queue_row_db(db_path: str, row: dict):
+    """Generate a fingerprint and insert into SQLite, ignoring duplicates."""
+    # Create the exact fingerprint used by the classifier to ensure uniqueness
+    key = (
+        row.get("pid"),
+        row.get("process_hash_sha256"),
+        row.get("network_protocol"),
+        row.get("network_out_process_ip"),
+        row.get("network_out_process_port"),
+        row.get("network_connection_state"),
+        row.get("command_line"),
+    )
+    
+    fingerprint = hashlib.sha256(json.dumps(key, sort_keys=True).encode()).hexdigest()
+    payload = json.dumps(row, default=str)
+
+    with DB_LOCK:
+        try:
+            with sqlite3.connect(db_path, timeout=10) as conn:
+                # INSERT OR IGNORE automatically drops exact duplicates based on the UNIQUE fingerprint
+                conn.execute(
+                    "INSERT OR IGNORE INTO event_queue (fingerprint, payload) VALUES (?, ?)", 
+                    (fingerprint, payload)
+                )
+                conn.commit()
+        except sqlite3.Error as e:
+            log.error(f"Database insertion error: {e}")
+
+
+# ─────────────────────────────────────────────────────────
+# Helpers
 # ─────────────────────────────────────────────────────────
 def get_process_hash(exe_path: str) -> str | None:
     if not exe_path or not os.path.isfile(exe_path):
@@ -139,7 +192,7 @@ def now_utc() -> datetime.datetime:
 
 
 # ─────────────────────────────────────────────────────────
-# Snapshot collectors — return dicts keyed for diffing
+# Snapshot collectors
 # ─────────────────────────────────────────────────────────
 def scan_processes_light() -> dict[int, dict]:
     current = {}
@@ -275,6 +328,52 @@ def emit(event: dict, output_path: str | None):
         print(line)
 
 
+def _normalize_monitor_to_classifier_row(proc: dict | None, conn: dict | None, is_orphan: bool = False) -> dict:
+    """
+    Convert monitor internal process/connection dicts to the classifier's flat row schema.
+    """
+    row = {}
+
+    if proc:
+        row["pid"] = proc.get("Internal_Process_PID")
+        row["process_name"] = proc.get("Internal_Process_Name")
+        row["process_owner"] = proc.get("Internal_Process_Ownership")
+        row["process_hash_sha256"] = proc.get("Internal_Process_Hash")
+        row["cert_status"] = proc.get("Internal_Process_Certificate_status")
+        row["thread_count"] = proc.get("Internal_Machine_Threads")
+        row["parent_pid"] = proc.get("Internal_Process_Parent_PID")
+        row["command_line"] = proc.get("Internal_Process_CommandLine")
+        row["process_executable_path"] = proc.get("Internal_Process_Executable_Path")
+    elif conn and conn.get("Network_Owning_PID") is not None:
+        row["pid"] = conn.get("Network_Owning_PID")
+
+    if conn:
+        row["has_connection"] = True
+        row["network_protocol"] = conn.get("Network_Protocol")
+        row["network_connection_state"] = conn.get("Network_Connection_State")
+        row["network_out_process_ip"] = conn.get("Network_Out_Process_IP")
+        row["network_out_process_fqdn"] = conn.get("Network_Out_Process_FQDN")
+        row["network_out_process_port"] = conn.get("Network_Out_Process_Port")
+        row["network_out_process_service"] = conn.get("Network_Out_Process_Service")
+        row["network_in_process_ip"] = conn.get("Network_In_Process_IP")
+        row["network_in_process_fqdn"] = conn.get("Network_In_Process_FQDN")
+        row["network_in_process_port"] = conn.get("Network_In_Process_Port")
+        row["network_in_process_service"] = conn.get("Network_In_Process_Service")
+    else:
+        row["has_connection"] = False
+
+    row["is_orphan_connection"] = bool(is_orphan)
+
+    return row
+
+
+def _queue_monitor_row(db_path: str, proc: dict | None, conn: dict | None, is_orphan: bool = False):
+    row = _normalize_monitor_to_classifier_row(proc, conn, is_orphan=is_orphan)
+    if row.get("pid") is None:
+        return
+    queue_row_db(db_path, row)
+
+
 # ─────────────────────────────────────────────────────────
 # WMI-based process creation watcher (Windows only)
 # ─────────────────────────────────────────────────────────
@@ -283,26 +382,20 @@ def wmi_process_creation_loop(
     emitted_pids: set[int],
     known_processes_lock: threading.Lock,
     output_path: str | None,
+    db_path: str,
     stop_event: threading.Event,
 ):
     import pythoncom
-
-    # Initialize COM in multithreaded mode (preferred for worker threads)
     pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
 
     try:
         if OS_PLATFORM != "Windows":
-            log.info("WMI process creation events are only available on Windows; skipping WMI watcher.")
             return
-
         if not HAS_WMI:
-            log.warning("WMI unavailable (wmi module not installed). Falling back to polling only.")
             return
 
-        log.info("Initializing WMI process creation watcher...")
         c = wmi.WMI()
         watcher = c.Win32_Process.watch_for("creation")
-        log.info("WMI initialized for process creation events.")
 
         while not stop_event.is_set():
             try:
@@ -310,20 +403,15 @@ def wmi_process_creation_loop(
             except Exception as e:
                 if "timed out" in str(e).lower():
                     continue
-                log.warning(f"WMI watcher error: {e}")
                 break
 
-            if stop_event.is_set():
-                break
-            if not new_proc:
+            if stop_event.is_set() or not new_proc:
                 continue
 
             try:
                 pid = int(new_proc.ProcessId)
             except Exception:
                 continue
-
-            log.info(f"WMI event received for new process PID={pid}")
 
             time.sleep(0.2)
             record = get_process_detail(pid)
@@ -335,15 +423,8 @@ def wmi_process_creation_loop(
                     emitted_pids.add(pid)
                     known_processes[pid] = {"Internal_Process_Name": record.get("Internal_Process_Name")}
 
-                emit(
-                    {
-                        "event": "new_process",
-                        "timestamp": now_iso(),
-                        "data": record,
-                    },
-                    output_path,
-                )
-
+                emit({"event": "new_process", "timestamp": now_iso(), "data": record}, output_path)
+                _queue_monitor_row(db_path, record, None, is_orphan=False)
     finally:
         pythoncom.CoUninitialize()
 
@@ -355,42 +436,33 @@ def main():
     parser = argparse.ArgumentParser(description="IEPIS Dynamic Monitor")
     parser.add_argument("--interval", type=float, default=2.0, help="Scan interval in seconds (default: 2)")
     parser.add_argument("--output", type=str, default=None, help="Append JSONL events to this file")
+    parser.add_argument("--db-file", type=str, default=DB_DEFAULT_PATH,
+                        help="SQLite queue database file (default: iepis_queue.db)")
     parser.add_argument("--emit-ended", action="store_true", help="Also emit process_ended / connection_ended events")
     args = parser.parse_args()
 
-    if args.interval == 2.0:
-        net_interval = 0.5
-    else:
-        net_interval = args.interval
+    net_interval = 0.5 if args.interval == 2.0 else args.interval
 
     log.info(
         f"Starting dynamic monitor | platform={OS_PLATFORM} | "
-        f"process_interval={args.interval}s | network_interval={net_interval}s"
+        f"process_interval={args.interval}s | network_interval={net_interval}s | db_file={args.db_file}"
     )
+
+    setup_database(args.db_file)
 
     known_processes_lock = threading.Lock()
     emitted_pids: set[int] = set()
-
-    # ----------------------------------------------------------
-    # Start WMI watcher BEFORE initial inventory
-    # ----------------------------------------------------------
     known_processes: dict[int, dict] = {}
     stop_event = threading.Event()
 
     wmi_thread = threading.Thread(
         target=wmi_process_creation_loop,
-        args=(known_processes, emitted_pids, known_processes_lock, args.output, stop_event),
+        args=(known_processes, emitted_pids, known_processes_lock, args.output, args.db_file, stop_event),
         daemon=True,
     )
     wmi_thread.start()
 
-    # ----------------------------------------------------------
-    # Initial Process Inventory (now AFTER WMI starts)
-    # ----------------------------------------------------------
     initial_snapshot = scan_processes_light()
-
-    log.info(f"Collecting initial inventory of {len(initial_snapshot)} running processes...")
-
     for pid in sorted(initial_snapshot.keys()):
         record = get_process_detail(pid)
         if record:
@@ -399,56 +471,20 @@ def main():
                     continue
                 emitted_pids.add(pid)
                 known_processes[pid] = {"Internal_Process_Name": record.get("Internal_Process_Name")}
+            emit({"event": "new_process", "timestamp": now_iso(), "data": record}, args.output)
+            _queue_monitor_row(args.db_file, record, None, is_orphan=False)
 
-            emit(
-                {
-                    "event": "new_process",
-                    "timestamp": now_iso(),
-                    "data": record,
-                },
-                args.output,
-            )
-
-    # ----------------------------------------------------------
-    # Initial Connection Inventory
-    # ----------------------------------------------------------
     known_connections = {}
-
     try:
-        connections = psutil.net_connections(kind="inet")
-        now_ts = now_utc()
-
-        for conn in connections:
+        for conn in psutil.net_connections(kind="inet"):
             laddr = conn.laddr
             raddr = conn.raddr
-
-            key = (
-                conn.pid,
-                laddr.ip if laddr else None,
-                laddr.port if laddr else None,
-                raddr.ip if raddr else None,
-                raddr.port if raddr else None,
-                conn.status,
-            )
-
-            known_connections[key] = {
-                "data": {},
-                "first_seen": now_ts,
-                "last_seen": now_ts,
-            }
-
+            key = (conn.pid, laddr.ip if laddr else None, laddr.port if laddr else None,
+                   raddr.ip if raddr else None, raddr.port if raddr else None, conn.status)
+            known_connections[key] = {"data": {}, "first_seen": now_utc(), "last_seen": now_utc()}
     except psutil.AccessDenied:
         pass
 
-    log.info(
-        f"Initial inventory completed "
-        f"({len(initial_snapshot)} processes, "
-        f"{len(known_connections)} active connections)"
-    )
-
-    # ----------------------------------------------------------
-    # Main Loop
-    # ----------------------------------------------------------
     last_reconcile = time.time()
     reconcile_interval = 5.0
 
@@ -459,31 +495,12 @@ def main():
             current_processes_light = scan_processes_light()
             current_keys = set(current_processes_light.keys())
 
-            # ── Ended processes ──
             with known_processes_lock:
                 known_keys = set(known_processes.keys())
                 ended_pids = known_keys - current_keys
-                ended_info = {pid: known_processes[pid] for pid in ended_pids}
-
-                # Allow PID reuse
                 for pid in ended_pids:
                     emitted_pids.discard(pid)
 
-            if args.emit_ended:
-                for pid in ended_pids:
-                    emit(
-                        {
-                            "event": "process_ended",
-                            "timestamp": now_iso(),
-                            "data": {
-                                "Internal_Process_PID": pid,
-                                "Internal_Process_Name": ended_info[pid].get("Internal_Process_Name"),
-                            },
-                        },
-                        args.output,
-                    )
-
-            # ── Fallback reconciliation ──
             now_time = time.time()
             if now_time - last_reconcile >= reconcile_interval:
                 with known_processes_lock:
@@ -498,60 +515,35 @@ def main():
                                 continue
                             emitted_pids.add(pid)
                             known_processes[pid] = {"Internal_Process_Name": full_record.get("Internal_Process_Name")}
-
-                        emit(
-                            {
-                                "event": "new_process",
-                                "timestamp": now_iso(),
-                                "data": full_record,
-                            },
-                            args.output,
-                        )
-                        log.info(f"Fallback polling detected missed process PID={pid}")
+                        emit({"event": "new_process", "timestamp": now_iso(), "data": full_record}, args.output)
+                        _queue_monitor_row(args.db_file, full_record, None, is_orphan=False)
 
                 last_reconcile = now_time
 
-            # Update known_processes safely
             with known_processes_lock:
                 known_processes.clear()
                 known_processes.update(current_processes_light)
 
-            # ─────────────────────────────────────────────────────
-            # Network Monitoring
-            # ─────────────────────────────────────────────────────
             current_connections = scan_connections()
             current_conn_keys = set(current_connections.keys())
             known_conn_keys = set(known_connections.keys())
-
             now_ts = now_utc()
 
-            # ── New connections ──
             new_conn_keys = current_conn_keys - known_conn_keys
             for key in new_conn_keys:
                 record = dict(current_connections[key])
-
                 pid = record.get("Network_Owning_PID")
                 if pid is not None:
                     proc_record = get_process_detail(pid)
                     if proc_record:
                         record.update(proc_record)
 
-                known_connections[key] = {
-                    "data": record,
-                    "first_seen": now_ts,
-                    "last_seen": now_ts,
-                }
+                known_connections[key] = {"data": record, "first_seen": now_ts, "last_seen": now_ts}
+                emit({"event": "new_connection", "timestamp": now_iso(), "data": record}, args.output)
+                
+                proc_fields = {k: v for k, v in record.items() if k.startswith("Internal_")} if any(k.startswith("Internal_") for k in record.keys()) else None
+                _queue_monitor_row(args.db_file, proc_fields, record, is_orphan=False)
 
-                emit(
-                    {
-                        "event": "new_connection",
-                        "timestamp": now_iso(),
-                        "data": record,
-                    },
-                    args.output,
-                )
-
-            # Update last_seen
             for key in current_conn_keys & known_conn_keys:
                 meta = known_connections.get(key)
                 if meta:
@@ -559,50 +551,12 @@ def main():
                     if not meta["data"]:
                         meta["data"] = current_connections[key]
 
-            # ── Ended connections ──
             if args.emit_ended:
                 ended_conn_keys = known_conn_keys - current_conn_keys
                 for key in ended_conn_keys:
-                    meta = known_connections.get(key, {})
-                    record = meta.get("data", {})
-                    first_seen = meta.get("first_seen")
-                    last_seen = meta.get("last_seen")
-
-                    if not record:
-                        pid, l_ip, l_port, r_ip, r_port, status = key
-                        record = {
-                            "Network_Owning_PID": pid,
-                            "Network_Connection_State": status,
-                            "In_Process_Port": l_port,
-                            "Out_Process_Port": r_port,
-                        }
-
-                    duration = None
-                    if isinstance(first_seen, datetime.datetime) and isinstance(last_seen, datetime.datetime):
-                        duration = (last_seen - first_seen).total_seconds()
-
-                    if duration is not None:
-                        record["Network_Connection_Duration"] = round(duration, 2)
-
-                    emit(
-                        {
-                            "event": "connection_ended",
-                            "timestamp": now_iso(),
-                            "data": record,
-                        },
-                        args.output,
-                    )
-
                     known_connections.pop(key, None)
             else:
                 ended_conn_keys = set()
-
-            if new_conn_keys or ended_pids:
-                log.info(
-                    f"+{len(new_conn_keys)} conn"
-                    + (f" | -{len(ended_conn_keys)} conn" if args.emit_ended else "")
-                    + (f" | -{len(ended_pids)} proc" if args.emit_ended else "")
-                )
 
     except KeyboardInterrupt:
         log.info("Monitor stopped by user.")
@@ -611,7 +565,6 @@ def main():
             wmi_thread.join(timeout=2.0)
         except Exception:
             pass
-
 
 if __name__ == "__main__":
     main()

