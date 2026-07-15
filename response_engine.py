@@ -1,51 +1,40 @@
 # response_engine_v5.py
 
 """
-IEPIS - Response Engine v5 (Continuous, Policy-Based, Dry-Run, Alert-Aware)
----------------------------------------------------------------------------
-Consumes classified_queue from iepis_queue.db (populated by csv_to_classified_queue.py).
+IEPIS - Response Engine v5 (ZeroMQ Subscriber, Policy-Based, Dry-Run, Alert-Aware)
+----------------------------------------------------------------------------------
+Consumes MALICIOUS events published by AI_model_classification_realtime.py via
+ZeroMQ PUB/SUB, applies process and connection policies, executes actions
+(Kill, Quarantine, Firewall) and logs incidents into SQLite incident_log.
 
-Final policy:
-
-BENIGN / UNKNOWN / ERROR
-    → No automated action (logged as NO_ACTION)
-
-MALICIOUS + LOW
-    → Alert only (ALERT_SENT)
-
-MALICIOUS + MEDIUM
-    → Alert (ALERT_SENT)
-    → Block public IP (if present)
-
-MALICIOUS + HIGH
-    → Kill process tree
-    → If kill successful: Quarantine executable (unless trusted Windows binary)
-    → Block public IP (if present)
-
-All actions are DISABLED by default via configuration flags (dry-run mode).
+Transport semantics:
+- ZeroMQ PUB/SUB provides best-effort, at-most-once delivery.
+- A PAIR-based startup handshake is used to reduce the chance of losing the
+  first message, but messages may still be lost if the classifier or subscriber
+  is unavailable.
 """
 
 import json
-import time
 import argparse
 import logging
 import sqlite3
 import subprocess
 import ipaddress
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 import psutil
+import zmq
 
 DB_DEFAULT_PATH = "iepis_queue.db"
-POLL_INTERVAL_DEFAULT = 0.5
-MICRO_BATCH_SIZE = 20
+PUB_ENDPOINT_DEFAULT = "tcp://127.0.0.1:5555"
+SYNC_ENDPOINT_DEFAULT = "tcp://127.0.0.1:5556"
 
 ENABLE_PROCESS_TERMINATION = False
 ENABLE_FIREWALL_BLOCK = False
 ENABLE_QUARANTINE = False
-ENABLE_ALERTING = False  # alerts are logged regardless; this flag controls real alert side-effects
+ENABLE_ALERTING = False
 
 QUARANTINE_DIR = Path("quarantine")
 
@@ -84,66 +73,7 @@ def setup_incident_log(db_path: str):
         conn.commit()
 
 
-def fetch_unprocessed_records(db_path: str, limit: int) -> List[Dict[str, Any]]:
-    rows = []
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT id, payload, classification, confidence, reason, threat_intel
-            FROM classified_queue
-            WHERE processed = 0
-            ORDER BY id ASC
-            LIMIT ?
-            """,
-            (limit,)
-        )
-        for cid, payload_str, classification, confidence, reason, threat_intel in cursor.fetchall():
-            try:
-                payload = json.loads(payload_str)
-            except json.JSONDecodeError:
-                payload = {}
-
-            payload["__classified_id"] = cid
-            payload["AI__Model_classification"] = classification
-            payload["AI__Model_confidence"] = confidence
-            payload["AI__Model_Reason"] = reason
-            payload["AI__Threat_Intel_Finding"] = threat_intel
-
-            rows.append(payload)
-    return rows
-
-
-def mark_processed(db_path: str, ids: List[int]):
-    if not ids:
-        return
-    with sqlite3.connect(db_path) as conn:
-        placeholders = ",".join(["?"] * len(ids))
-        conn.execute(
-            f"UPDATE classified_queue SET processed = 1 WHERE id IN ({placeholders})",
-            ids
-        )
-        conn.commit()
-
-
-def log_incident(
-    db_path: str,
-    timestamp: str,
-    pid: int | None,
-    process_name: str,
-    parent_pid: int | None,
-    exe_path: str,
-    process_hash: str,
-    remote_ip: str | None,
-    classification: str,
-    confidence: str,
-    action: str,
-    executed: bool,
-    status: str,
-    reason: str,
-    threat_intel: str,
-):
-    setup_incident_log(db_path)
+def log_incident(db_path: str, incident: Dict[str, Any]):
     with sqlite3.connect(db_path) as conn:
         conn.execute(
             """
@@ -154,20 +84,20 @@ def log_incident(
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                timestamp,
-                pid,
-                process_name,
-                parent_pid,
-                exe_path,
-                process_hash,
-                remote_ip,
-                classification,
-                confidence,
-                action,
-                1 if executed else 0,
-                status,
-                reason,
-                threat_intel,
+                incident["timestamp"],
+                incident["pid"],
+                incident["process_name"],
+                incident["parent_pid"],
+                incident["process_executable_path"],
+                incident["process_hash_sha256"],
+                incident["remote_ip"],
+                incident["classification"],
+                incident["confidence"],
+                incident["action"],
+                1 if incident["executed"] else 0,
+                incident["status"],
+                incident["reason"],
+                incident["threat_intel"],
             )
         )
         conn.commit()
@@ -177,14 +107,7 @@ def log_incident(
 # Utility helpers
 # ─────────────────────────────────────────────────────────
 
-def is_trusted_windows_binary(path: str, cert_status: str) -> bool:
-    if not path:
-        return False
-    path_lower = path.lower()
-    return cert_status.lower() == "signed" and path_lower.startswith(r"c:\windows")
-
-
-def validate_public_ip(ip: str) -> str | None:
+def validate_public_ip(ip: str | None) -> str | None:
     if not ip:
         return None
     try:
@@ -196,8 +119,14 @@ def validate_public_ip(ip: str) -> str | None:
     return ip
 
 
+def is_trusted_windows_binary(path: str, cert_status: str) -> bool:
+    if not path:
+        return False
+    return cert_status.lower() == "signed" and path.lower().startswith("c:\\windows")
+
+
 # ─────────────────────────────────────────────────────────
-# Actions (Dry-Run Capable)
+# Actions
 # ─────────────────────────────────────────────────────────
 
 def kill_process_tree(pid: int) -> bool:
@@ -212,8 +141,7 @@ def kill_process_tree(pid: int) -> bool:
         return False
 
     children = root.children(recursive=True)
-    procs = children + [root]  # children first, parent last
-    log.info(f"Killing process tree (children first): {[p.pid for p in procs]}")
+    procs = children + [root]
 
     for p in procs:
         try:
@@ -233,7 +161,6 @@ def kill_process_tree(pid: int) -> bool:
 
 def quarantine_file(path: str, reason: str, threat_intel: str, cert_status: str) -> bool:
     if not path:
-        log.info("[Quarantine] No executable path provided.")
         return False
 
     if is_trusted_windows_binary(path, cert_status):
@@ -248,7 +175,6 @@ def quarantine_file(path: str, reason: str, threat_intel: str, cert_status: str)
         QUARANTINE_DIR.mkdir(exist_ok=True)
         src = Path(path)
         if not src.exists():
-            log.warning(f"Executable not found: {path}")
             return False
 
         dst = QUARANTINE_DIR / src.name
@@ -257,14 +183,13 @@ def quarantine_file(path: str, reason: str, threat_intel: str, cert_status: str)
         meta = {
             "original_path": path,
             "quarantined_path": str(dst),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "reason": reason,
             "threat_intel": threat_intel,
             "cert_status": cert_status,
         }
 
-        meta_path = QUARANTINE_DIR / (src.name + ".meta.json")
-        with meta_path.open("w") as f:
+        with open(QUARANTINE_DIR / (src.name + ".meta.json"), "w") as f:
             json.dump(meta, f, indent=2)
 
         return True
@@ -274,42 +199,22 @@ def quarantine_file(path: str, reason: str, threat_intel: str, cert_status: str)
         return False
 
 
-def firewall_rule_exists(ip: str) -> bool:
-    rule_name = f"IEPIS_Block_{ip}"
-    ps_cmd = f"Get-NetFirewallRule -DisplayName '{rule_name}' -ErrorAction SilentlyContinue"
-    try:
-        result = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps_cmd],
-            capture_output=True,
-            text=True,
-        )
-        return bool(result.stdout.strip())
-    except Exception:
-        return False
-
-
 def block_ip(ip: str, reason: str) -> bool:
     ip = validate_public_ip(ip)
     if not ip:
-        log.info("[Firewall] IP is invalid or non-public; skipping.")
+        return False
+
+    if not ENABLE_FIREWALL_BLOCK:
+        log.info(f"[DRY RUN] Would block IP {ip}")
         return False
 
     rule_name = f"IEPIS_Block_{ip}"
-
-    if not ENABLE_FIREWALL_BLOCK:
-        log.info(f"[DRY RUN] Would block IP {ip} via New-NetFirewallRule | reason={reason}")
-        return False
-
-    if firewall_rule_exists(ip):
-        log.info(f"[Firewall] Rule already exists for IP {ip}; skipping.")
-        return False
 
     try:
         ps_cmd = (
             f"New-NetFirewallRule -DisplayName '{rule_name}' "
             f"-Direction Outbound -RemoteAddress {ip} -Action Block"
         )
-
         subprocess.run(
             ["powershell", "-NoProfile", "-Command", ps_cmd],
             check=True,
@@ -317,49 +222,46 @@ def block_ip(ip: str, reason: str) -> bool:
             text=True,
         )
         return True
-
     except Exception as e:
         log.error(f"Firewall error: {e}")
         return False
 
 
-def alert_user(pid: int | None, process_name: str, classification: str, confidence: str, reason: str, threat_intel: str):
+def alert_user(pid, process_name, classification, confidence, reason, threat_intel):
     msg = (
         f"[ALERT] PID={pid}, process={process_name}, classification={classification}, "
         f"confidence={confidence}, reason={reason}, threat_intel={threat_intel}"
     )
+    if not ENABLE_ALERTING:
+        log.info(f"[DRY RUN] Would alert user: {msg}")
+        return
     log.warning(msg)
-    if ENABLE_ALERTING:
-        # Placeholder for future integration (GUI popup, email, webhook, etc.)
-        pass
 
 
 # ─────────────────────────────────────────────────────────
-# Policy Engine (Process + Connection)
+# Policy Engine
 # ─────────────────────────────────────────────────────────
 
-def decide_process_actions(classification: str, confidence: str) -> List[str]:
-    classification = (classification or "").upper()
-    confidence = (confidence or "").upper()
+def decide_process_actions(classification: str, confidence: str):
+    classification = classification.upper()
+    confidence = confidence.upper()
 
     if classification != "MALICIOUS":
         return []
 
     if confidence == "LOW":
         return ["alert"]
-
     if confidence == "MEDIUM":
         return ["alert"]
-
     if confidence == "HIGH":
         return ["kill_tree", "quarantine"]
 
     return []
 
 
-def decide_connection_actions(classification: str, confidence: str, remote_ip: str) -> List[str]:
-    classification = (classification or "").upper()
-    confidence = (confidence or "").upper()
+def decide_connection_actions(classification: str, confidence: str, remote_ip: str | None):
+    classification = classification.upper()
+    confidence = confidence.upper()
 
     if classification != "MALICIOUS":
         return []
@@ -370,10 +272,8 @@ def decide_connection_actions(classification: str, confidence: str, remote_ip: s
 
     if confidence == "LOW":
         return ["alert"]
-
     if confidence == "MEDIUM":
         return ["alert", "block_ip"]
-
     if confidence == "HIGH":
         return ["alert", "block_ip"]
 
@@ -385,73 +285,58 @@ def decide_connection_actions(classification: str, confidence: str, remote_ip: s
 # ─────────────────────────────────────────────────────────
 
 def process_record(db_path: str, record: Dict[str, Any]):
-    cid = record["__classified_id"]
-
-    pid = None
-    try:
-        pid = int(record.get("pid"))
-    except Exception:
-        pass
-
-    process_name = record.get("process_name") or ""
+    pid = record.get("pid")
+    process_name = record.get("process_name")
     parent_pid = record.get("parent_pid")
-    exe_path = record.get("process_executable_path") or ""
-    process_hash = record.get("process_hash_sha256") or ""
-    remote_ip_raw = record.get("network_out_process_ip") or ""
+    exe_path = record.get("process_executable_path")
+    process_hash = record.get("process_hash_sha256")
+    remote_ip_raw = record.get("network_out_process_ip")
 
-    classification = record.get("AI__Model_classification") or ""
-    confidence = record.get("AI__Model_confidence") or ""
-    reason = record.get("AI__Model_Reason") or ""
-    threat_intel = record.get("AI__Threat_Intel_Finding") or ""
-    cert_status = record.get("cert_status") or ""
+    classification = record.get("AI__Model_classification")
+    confidence = record.get("AI__Model_confidence")
+    reason = record.get("AI__Model_Reason")
+    threat_intel = record.get("AI__Threat_Intel_Finding")
+    cert_status = record.get("cert_status")
+
+    timestamp = datetime.now(UTC).isoformat()
+    remote_ip_valid = validate_public_ip(remote_ip_raw)
 
     process_actions = decide_process_actions(classification, confidence)
     connection_actions = decide_connection_actions(classification, confidence, remote_ip_raw)
 
-    timestamp = datetime.utcnow().isoformat()
-
     if not process_actions and not connection_actions:
-        log.info(
-            f"No actions for classified_id={cid}, PID={pid}, name={process_name}: "
-            f"classification={classification}, confidence={confidence}"
-        )
-        log_incident(
-            db_path,
-            timestamp,
-            pid,
-            process_name,
-            parent_pid,
-            exe_path,
-            process_hash,
-            validate_public_ip(remote_ip_raw),
-            classification,
-            confidence,
-            "none",
-            False,
-            "NO_ACTION",
-            reason,
-            threat_intel,
-        )
+        incident = {
+            "timestamp": timestamp,
+            "pid": pid,
+            "process_name": process_name,
+            "parent_pid": parent_pid,
+            "process_executable_path": exe_path,
+            "process_hash_sha256": process_hash,
+            "remote_ip": remote_ip_valid,
+            "classification": classification,
+            "confidence": confidence,
+            "action": "none",
+            "executed": False,
+            "status": "NO_ACTION",
+            "reason": reason,
+            "threat_intel": threat_intel,
+        }
+        log_incident(db_path, incident)
         return
 
-    log.info(
-        f"Policy decision for classified_id={cid}, PID={pid}, name={process_name}: "
-        f"classification={classification}, confidence={confidence}, "
-        f"process_actions={process_actions}, connection_actions={connection_actions}"
-    )
+    kill_ok = False
 
     # Process actions
-    kill_ok = False
     for action in process_actions:
         executed = False
         status = "DRY_RUN_OR_FAILED"
 
         if action == "alert":
             alert_user(pid, process_name, classification, confidence, reason, threat_intel)
-            executed = True  # alert considered executed
-            status = "ALERT_SENT"
+            executed = ENABLE_ALERTING
+            status = "ALERT_SENT" if executed else "ALERT_DRY_RUN"
 
-        elif action == "kill_tree" and pid is not None:
+        elif action == "kill_tree":
             kill_ok = kill_process_tree(pid)
             executed = kill_ok
             status = "OK" if executed else status
@@ -461,27 +346,25 @@ def process_record(db_path: str, record: Dict[str, Any]):
                 executed = quarantine_file(exe_path, reason, threat_intel, cert_status)
                 status = "OK" if executed else status
             else:
-                log.info("[Quarantine] Skipping because kill_tree did not succeed.")
-                executed = False
                 status = "SKIPPED_KILL_FAILED"
 
-        log_incident(
-            db_path,
-            timestamp,
-            pid,
-            process_name,
-            parent_pid,
-            exe_path,
-            process_hash,
-            validate_public_ip(remote_ip_raw),
-            classification,
-            confidence,
-            action,
-            executed,
-            status,
-            reason,
-            threat_intel,
-        )
+        incident = {
+            "timestamp": timestamp,
+            "pid": pid,
+            "process_name": process_name,
+            "parent_pid": parent_pid,
+            "process_executable_path": exe_path,
+            "process_hash_sha256": process_hash,
+            "remote_ip": remote_ip_valid,
+            "classification": classification,
+            "confidence": confidence,
+            "action": action,
+            "executed": executed,
+            "status": status,
+            "reason": reason,
+            "threat_intel": threat_intel,
+        }
+        log_incident(db_path, incident)
 
     # Connection actions
     for action in connection_actions:
@@ -490,65 +373,92 @@ def process_record(db_path: str, record: Dict[str, Any]):
 
         if action == "alert":
             alert_user(pid, process_name, classification, confidence, reason, threat_intel)
-            executed = True
-            status = "ALERT_SENT"
+            executed = ENABLE_ALERTING
+            status = "ALERT_SENT" if executed else "ALERT_DRY_RUN"
 
         elif action == "block_ip":
             executed = block_ip(remote_ip_raw, reason)
             status = "OK" if executed else status
 
-        log_incident(
-            db_path,
-            timestamp,
-            pid,
-            process_name,
-            parent_pid,
-            exe_path,
-            process_hash,
-            validate_public_ip(remote_ip_raw),
-            classification,
-            confidence,
-            action,
-            executed,
-            status,
-            reason,
-            threat_intel,
-        )
+        incident = {
+            "timestamp": timestamp,
+            "pid": pid,
+            "process_name": process_name,
+            "parent_pid": parent_pid,
+            "process_executable_path": exe_path,
+            "process_hash_sha256": process_hash,
+            "remote_ip": remote_ip_valid,
+            "classification": classification,
+            "confidence": confidence,
+            "action": action,
+            "executed": executed,
+            "status": status,
+            "reason": reason,
+            "threat_intel": threat_intel,
+        }
+        log_incident(db_path, incident)
 
 
-def response_loop(db_path: str, poll_interval: float):
+# ─────────────────────────────────────────────────────────
+# ZeroMQ Subscriber (Poller-based)
+# ─────────────────────────────────────────────────────────
+
+def subscriber_loop(db_path: str, pub_endpoint: str, sync_endpoint: str):
     QUARANTINE_DIR.mkdir(exist_ok=True)
     setup_incident_log(db_path)
 
-    log.info(f"Response Engine v5 started | db={db_path}")
+    context = zmq.Context()
 
-    while True:
-        records = fetch_unprocessed_records(db_path, MICRO_BATCH_SIZE)
+    sub = context.socket(zmq.SUB)
+    sub.connect(pub_endpoint)
+    sub.setsockopt_string(zmq.SUBSCRIBE, "")
 
-        if not records:
-            time.sleep(poll_interval)
-            continue
+    sync = context.socket(zmq.PAIR)
+    sync.connect(sync_endpoint)
 
-        ids = [r["__classified_id"] for r in records]
+    log.info(f"Response Engine v5 started | db={db_path} | sub={pub_endpoint} | sync={sync_endpoint}")
+    print(f"[ResponseEngine] Sending READY to classifier...")
+    sync.send_string("READY")
 
-        for rec in records:
-            process_record(db_path, rec)
-
-        mark_processed(db_path, ids)
-
-        time.sleep(poll_interval)
-
-
-def main():
-    parser = argparse.ArgumentParser(description="IEPIS Response Engine v5 (Policy-Based, Continuous, Dry-Run)")
-    parser.add_argument("--db-file", default=DB_DEFAULT_PATH)
-    parser.add_argument("--poll-interval", type=float, default=POLL_INTERVAL_DEFAULT)
-    args = parser.parse_args()
+    poller = zmq.Poller()
+    poller.register(sub, zmq.POLLIN)
 
     try:
-        response_loop(args.db_file, args.poll_interval)
+        while True:
+            events = dict(poller.poll(1000))  # 1 second timeout
+
+            if sub in events:
+                try:
+                    msg = sub.recv_string()
+                    record = json.loads(msg)
+                    process_record(db_path, record)
+                except json.JSONDecodeError:
+                    log.error(f"Invalid JSON received: {msg[:200]!r}")
+                except Exception as e:
+                    log.error(f"Processing error: {e}")
+
     except KeyboardInterrupt:
         log.info("Response engine stopped.")
+
+    finally:
+        sub.close()
+        sync.close()
+        context.term()
+        log.info("Response Engine shutdown complete.")
+
+
+# ─────────────────────────────────────────────────────────
+# Main
+# ─────────────────────────────────────────────────────────
+
+def main():
+    parser = argparse.ArgumentParser(description="IEPIS Response Engine v5 (ZeroMQ Subscriber)")
+    parser.add_argument("--db-file", default=DB_DEFAULT_PATH)
+    parser.add_argument("--pub-endpoint", default=PUB_ENDPOINT_DEFAULT)
+    parser.add_argument("--sync-endpoint", default=SYNC_ENDPOINT_DEFAULT)
+    args = parser.parse_args()
+
+    subscriber_loop(args.db_file, args.pub_endpoint, args.sync_endpoint)
 
 
 if __name__ == "__main__":
