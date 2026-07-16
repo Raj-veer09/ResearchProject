@@ -80,6 +80,7 @@ def setup_database(db_path: str):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            conn.execute("DELETE FROM event_queue")
             conn.commit()
 
 
